@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:google_sign_in/google_sign_in.dart';
@@ -19,8 +20,7 @@ class AuthService {
         return UserModel.fromMap(doc.data() as Map<String, dynamic>, doc.id);
       }
       return null;
-    } catch (e) {
-      print(e.toString());
+    } catch (e) { debugPrint(e.toString());
       return null;
     }
   }
@@ -137,8 +137,7 @@ class AuthService {
           return userModel;
         }
       }
-    } catch (e) {
-      print(e.toString());
+    } catch (e) { debugPrint(e.toString());
     }
     return null;
   }
@@ -148,8 +147,7 @@ class AuthService {
     try {
       await GoogleSignIn().signOut();
     } catch (e) {
-      // Ignore errors if Google Sign In is not initialized (e.g. on Web)
-      print('Google sign out error: $e');
+      // Ignore errors if Google Sign In is not initialized (e.g. on Web) debugPrint('Google sign out error: $e');
     }
     await _auth.signOut();
   }

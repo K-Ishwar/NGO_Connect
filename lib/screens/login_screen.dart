@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:clay_containers/clay_containers.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import '../services/auth_service.dart';
 import '../models/user_model.dart';
 import 'register_screen.dart';
@@ -14,9 +15,43 @@ class LoginScreen extends StatefulWidget {
 class _LoginScreenState extends State<LoginScreen> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
-  String _selectedRole = 'ngo';
   bool _isLoading = false;
   final Color baseColor = const Color(0xFFF2F2F2);
+
+  Future<void> _forgotPassword() async {
+    final email = _emailController.text.trim();
+    if (email.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Enter your email address first, then tap Forgot Password.'),
+          backgroundColor: Colors.orange,
+        ),
+      );
+      return;
+    }
+    try {
+      await FirebaseAuth.instance.sendPasswordResetEmail(email: email);
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Password reset email sent to $email. Check your inbox!'),
+          backgroundColor: Colors.green.shade700,
+          duration: const Duration(seconds: 5),
+        ),
+      );
+    } on FirebaseAuthException catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(e.code == 'user-not-found'
+              ? 'No account found for $email.'
+              : 'Reset failed: ${e.message}'),
+          backgroundColor: Colors.red.shade700,
+          duration: const Duration(seconds: 4),
+        ),
+      );
+    }
+  }
 
   void _login() async {
     if (_emailController.text.trim().isEmpty || _passwordController.text.trim().isEmpty) {
@@ -52,7 +87,8 @@ class _LoginScreenState extends State<LoginScreen> {
     setState(() => _isLoading = true);
     try {
       final authService = AuthService();
-      UserModel? user = await authService.signInWithGoogle(_selectedRole);
+      // Google sign-in — role will be fetched from Firestore after login
+      UserModel? user = await authService.signInWithGoogle('ngo');
       if (!mounted) return;
       setState(() => _isLoading = false);
       _handleLoginResult(user);
@@ -92,7 +128,7 @@ class _LoginScreenState extends State<LoginScreen> {
             end: Alignment.bottomRight,
             colors: [
               const Color(0xFFF2F2F2),
-              const Color(0xFFE6E6FA).withOpacity(0.5), // Very light pastel purple
+              const Color(0xFFE6E6FA).withValues(alpha: 0.5), // Very light pastel purple
               const Color(0xFFF2F2F2),
             ],
           ),
@@ -122,7 +158,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
                         boxShadow: [
                           BoxShadow(
-                            color: const Color(0xFFE94057).withOpacity(0.4),
+                            color: const Color(0xFFE94057).withValues(alpha: 0.4),
                             blurRadius: 20,
                             offset: const Offset(0, 10),
                           ),
@@ -192,47 +228,23 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
                       ),
                     ),
-                    const SizedBox(height: 20),
+                    const SizedBox(height: 8),
 
-                    // Role Dropdown
-                    ClayContainer(
-                      color: baseColor,
-                      borderRadius: 15,
-                      depth: -20,
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 16.0,
-                          vertical: 4.0,
-                        ),
-                        child: DropdownButtonHideUnderline(
-                          child: DropdownButton<String>(
-                            value: _selectedRole,
-                            isExpanded: true,
-                            icon: const Icon(
-                              Icons.arrow_drop_down,
-                              color: Color(0xFF8A2387),
-                            ),
-                            items: const [
-                              DropdownMenuItem(value: 'ngo', child: Text('NGO')),
-                              DropdownMenuItem(
-                                value: 'volunteer',
-                                child: Text('Volunteer'),
-                              ),
-                            ],
-                            onChanged: (value) {
-                              setState(() {
-                                if (value != null) _selectedRole = value;
-                              });
-                            },
-                          ),
+                    // Forgot Password link
+                    Align(
+                      alignment: Alignment.centerRight,
+                      child: TextButton(
+                        onPressed: _forgotPassword,
+                        child: const Text(
+                          'Forgot Password?',
+                          style: TextStyle(color: Color(0xFF8A2387), fontWeight: FontWeight.w600, fontSize: 13),
                         ),
                       ),
                     ),
-                    const SizedBox(height: 40),
 
                     // Login Button
                     _isLoading
-                        ? const CircularProgressIndicator(color: Color(0xFFE94057))
+                        ? const Center(child: CircularProgressIndicator(color: Color(0xFFE94057)))
                         : Column(
                             crossAxisAlignment: CrossAxisAlignment.stretch,
                             children: [

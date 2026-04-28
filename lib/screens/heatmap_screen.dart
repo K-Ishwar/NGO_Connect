@@ -132,7 +132,7 @@ class _HeatmapScreenState extends State<HeatmapScreen> with TickerProviderStateM
                   Container(
                     width: 38, height: 38,
                     decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.2),
+                      color: Colors.white.withValues(alpha: 0.2),
                       borderRadius: BorderRadius.circular(10),
                     ),
                     child: const Icon(Icons.map, color: Colors.white, size: 22),
@@ -183,8 +183,8 @@ class _HeatmapScreenState extends State<HeatmapScreen> with TickerProviderStateM
                     return CircleMarker(
                       point: m.position,
                       radius: base + (_pulseController.value * urgFactor),
-                      color: _colorForUrgency(m.survey.urgency).withOpacity(0.12 + _pulseController.value * 0.22),
-                      borderColor: _colorForUrgency(m.survey.urgency).withOpacity(0.4),
+                      color: _colorForUrgency(m.survey.urgency).withValues(alpha: 0.12 + _pulseController.value * 0.22),
+                      borderColor: _colorForUrgency(m.survey.urgency).withValues(alpha: 0.4),
                       borderStrokeWidth: 1.5,
                     );
                   }).toList(),
@@ -195,7 +195,7 @@ class _HeatmapScreenState extends State<HeatmapScreen> with TickerProviderStateM
                 circles: _filteredMarkers.map((m) => CircleMarker(
                   point: m.position,
                   radius: _radiusForCount(m.survey.peopleCount),
-                  color: _colorForUrgency(m.survey.urgency).withOpacity(0.55),
+                  color: _colorForUrgency(m.survey.urgency).withValues(alpha: 0.55),
                   borderColor: _colorForUrgency(m.survey.urgency),
                   borderStrokeWidth: 2.5,
                 )).toList(),
@@ -215,7 +215,7 @@ class _HeatmapScreenState extends State<HeatmapScreen> with TickerProviderStateM
                         border: Border.all(color: _colorForUrgency(m.survey.urgency), width: 1.5),
                         boxShadow: [
                           BoxShadow(
-                            color: _colorForUrgency(m.survey.urgency).withOpacity(0.3),
+                            color: _colorForUrgency(m.survey.urgency).withValues(alpha: 0.3),
                             blurRadius: 8, offset: const Offset(0, 3),
                           ),
                         ],
@@ -249,7 +249,7 @@ class _HeatmapScreenState extends State<HeatmapScreen> with TickerProviderStateM
                   decoration: BoxDecoration(
                     color: Colors.white,
                     borderRadius: BorderRadius.circular(20),
-                    boxShadow: [BoxShadow(color: const Color(0xFF8A2387).withOpacity(0.2), blurRadius: 20)],
+                    boxShadow: [BoxShadow(color: const Color(0xFF8A2387).withValues(alpha: 0.2), blurRadius: 20)],
                   ),
                   child: const Column(
                     mainAxisSize: MainAxisSize.min,
@@ -279,7 +279,7 @@ class _HeatmapScreenState extends State<HeatmapScreen> with TickerProviderStateM
                       selected: selected,
                       onSelected: (_) => setState(() => _selectedFilter = f),
                       backgroundColor: Colors.white,
-                      selectedColor: const Color(0xFF8A2387).withOpacity(0.2),
+                      selectedColor: const Color(0xFF8A2387).withValues(alpha: 0.2),
                       checkmarkColor: const Color(0xFF8A2387),
                       elevation: selected ? 4 : 1,
                       labelStyle: TextStyle(
@@ -302,7 +302,7 @@ class _HeatmapScreenState extends State<HeatmapScreen> with TickerProviderStateM
               decoration: BoxDecoration(
                 color: Colors.white,
                 borderRadius: BorderRadius.circular(14),
-                boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.1), blurRadius: 8)],
+                boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.1), blurRadius: 8)],
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -366,7 +366,7 @@ class _HeatmapScreenState extends State<HeatmapScreen> with TickerProviderStateM
                 padding: const EdgeInsets.all(14),
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
-                    colors: [urgColor.withOpacity(0.7), urgColor],
+                    colors: [urgColor.withValues(alpha: 0.7), urgColor],
                     begin: Alignment.topLeft, end: Alignment.bottomRight,
                   ),
                   borderRadius: BorderRadius.circular(16),
@@ -384,7 +384,7 @@ class _HeatmapScreenState extends State<HeatmapScreen> with TickerProviderStateM
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                       decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.25), borderRadius: BorderRadius.circular(10)),
+                          color: Colors.white.withValues(alpha: 0.25), borderRadius: BorderRadius.circular(10)),
                       child: Text(survey.urgency,
                           style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12)),
                     ),

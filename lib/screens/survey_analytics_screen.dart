@@ -37,7 +37,7 @@ class SurveyAnalyticsScreen extends StatelessWidget {
             end: Alignment.bottomRight,
             colors: [
               const Color(0xFFF2F2F2),
-              const Color(0xFFE6E6FA).withOpacity(0.5),
+              const Color(0xFFE6E6FA).withValues(alpha: 0.5),
               const Color(0xFFF2F2F2),
             ],
           ),
@@ -267,7 +267,7 @@ class SurveyAnalyticsScreen extends StatelessWidget {
                             gradient: const LinearGradient(colors: [Color(0xFF8A2387), Color(0xFFE94057)]),
                             borderRadius: BorderRadius.circular(15),
                             boxShadow: [BoxShadow(
-                              color: const Color(0xFFE94057).withOpacity(0.3),
+                              color: const Color(0xFFE94057).withValues(alpha: 0.3),
                               blurRadius: 12, offset: const Offset(0, 6),
                             )],
                           ),
@@ -311,7 +311,7 @@ class SurveyAnalyticsScreen extends StatelessWidget {
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                     decoration: BoxDecoration(
-                      color: _fieldColor(def.type).withOpacity(0.12),
+                      color: _fieldColor(def.type).withValues(alpha: 0.12),
                       borderRadius: BorderRadius.circular(10),
                     ),
                     child: Text(_typeLabel(def.type),
@@ -405,9 +405,9 @@ class SurveyAnalyticsScreen extends StatelessWidget {
           children: values.take(5).map((v) => Container(
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
             decoration: BoxDecoration(
-              color: Colors.blueAccent.withOpacity(0.08),
+              color: Colors.blueAccent.withValues(alpha: 0.08),
               borderRadius: BorderRadius.circular(20),
-              border: Border.all(color: Colors.blueAccent.withOpacity(0.3)),
+              border: Border.all(color: Colors.blueAccent.withValues(alpha: 0.3)),
             ),
             child: Text(v.toString(),
                 style: const TextStyle(fontSize: 12, color: Colors.blueAccent, fontWeight: FontWeight.bold)),
@@ -447,9 +447,9 @@ class SurveyAnalyticsScreen extends StatelessWidget {
         children: top.map((e) => Container(
           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
           decoration: BoxDecoration(
-            color: Colors.blueAccent.withOpacity(0.1),
+            color: Colors.blueAccent.withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(20),
-            border: Border.all(color: Colors.blueAccent.withOpacity(0.4)),
+            border: Border.all(color: Colors.blueAccent.withValues(alpha: 0.4)),
           ),
           child: Text('${e.key} (${e.value})',
               style: const TextStyle(fontSize: 12, color: Colors.blueAccent, fontWeight: FontWeight.bold)),
@@ -661,9 +661,9 @@ class SurveyAnalyticsScreen extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 10),
         decoration: BoxDecoration(
-          color: color.withOpacity(0.1),
+          color: color.withValues(alpha: 0.1),
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: color.withOpacity(0.3)),
+          border: Border.all(color: color.withValues(alpha: 0.3)),
         ),
         child: Column(
           children: [

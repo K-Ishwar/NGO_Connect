@@ -90,7 +90,7 @@ class _VolunteerDashboardState extends State<VolunteerDashboard> {
                   Container(
                     width: 40, height: 40,
                     decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.2),
+                      color: Colors.white.withValues(alpha: 0.2),
                       borderRadius: BorderRadius.circular(10),
                     ),
                     child: const Icon(Icons.volunteer_activism, color: Colors.white, size: 22),
@@ -148,7 +148,7 @@ class _VolunteerDashboardState extends State<VolunteerDashboard> {
                   end: Alignment.bottomRight,
                   colors: [
                     const Color(0xFFF2F2F2),
-                    const Color(0xFFE6E6FA).withOpacity(0.5),
+                    const Color(0xFFE6E6FA).withValues(alpha: 0.5),
                     const Color(0xFFF2F2F2),
                   ],
                 ),
@@ -181,24 +181,6 @@ class _VolunteerDashboardState extends State<VolunteerDashboard> {
             ),
           ),
         ],
-      ),
-    );
-  }
-
-  Widget _buildEmptyState(String message) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 20.0),
-      child: Center(
-        child: Column(
-          children: [
-            Icon(Icons.inbox_outlined, size: 48, color: Colors.grey.shade400),
-            const SizedBox(height: 8),
-            Text(
-              message,
-              style: TextStyle(color: Colors.grey.shade500, fontStyle: FontStyle.italic),
-            ),
-          ],
-        ),
       ),
     );
   }
@@ -242,7 +224,7 @@ class _VolunteerDashboardState extends State<VolunteerDashboard> {
         ),
         ..._userModel!.skills.map((skill) => Chip(
           label: Text(skill, style: const TextStyle(fontSize: 11)),
-          backgroundColor: const Color(0xFF8A2387).withOpacity(0.1),
+          backgroundColor: const Color(0xFF8A2387).withValues(alpha: 0.1),
           side: const BorderSide(color: Color(0xFF8A2387)),
           labelStyle: const TextStyle(color: Color(0xFF8A2387)),
         )),
@@ -267,7 +249,7 @@ class _VolunteerDashboardState extends State<VolunteerDashboard> {
                   Container(
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
-                      color: const Color(0xFF5F72BD).withOpacity(0.1),
+                      color: const Color(0xFF5F72BD).withValues(alpha: 0.1),
                       shape: BoxShape.circle,
                     ),
                     child: const Icon(Icons.festival_outlined, color: Color(0xFF5F72BD), size: 28),
@@ -322,9 +304,9 @@ class _VolunteerDashboardState extends State<VolunteerDashboard> {
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                           decoration: BoxDecoration(
-                            color: statusColor.withOpacity(0.12),
+                            color: statusColor.withValues(alpha: 0.12),
                             borderRadius: BorderRadius.circular(10),
-                            border: Border.all(color: statusColor.withOpacity(0.4)),
+                            border: Border.all(color: statusColor.withValues(alpha: 0.4)),
                           ),
                           child: Text(camp.status.toUpperCase(),
                               style: TextStyle(color: statusColor, fontWeight: FontWeight.bold, fontSize: 10)),
@@ -570,7 +552,7 @@ class _VolunteerDashboardState extends State<VolunteerDashboard> {
                             Container(
                               padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                               decoration: BoxDecoration(
-                                color: matchScore == 100 ? Colors.green.withOpacity(0.2) : Colors.orange.withOpacity(0.2),
+                                color: matchScore == 100 ? Colors.green.withValues(alpha: 0.2) : Colors.orange.withValues(alpha: 0.2),
                                 borderRadius: BorderRadius.circular(8),
                               ),
                               child: Text(

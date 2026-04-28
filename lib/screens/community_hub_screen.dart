@@ -92,7 +92,7 @@ class _CommunityHubScreenState extends State<CommunityHubScreen> {
             children: [
               Container(
                 padding: const EdgeInsets.all(16),
-                color: const Color(0xFF8A2387).withOpacity(0.1),
+                color: const Color(0xFF8A2387).withValues(alpha: 0.1),
                 child: const Text(
                   'Advanced Filters',
                   style: TextStyle(
@@ -201,7 +201,7 @@ class _CommunityHubScreenState extends State<CommunityHubScreen> {
                     width: 38,
                     height: 38,
                     decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.2),
+                      color: Colors.white.withValues(alpha: 0.2),
                       borderRadius: BorderRadius.circular(10),
                     ),
                     child: const Icon(
@@ -260,7 +260,7 @@ class _CommunityHubScreenState extends State<CommunityHubScreen> {
             end: Alignment.bottomRight,
             colors: [
               const Color(0xFFF2F2F2),
-              const Color(0xFFE6E6FA).withOpacity(0.5),
+              const Color(0xFFE6E6FA).withValues(alpha: 0.5),
               const Color(0xFFF2F2F2),
             ],
           ),
@@ -503,7 +503,7 @@ class _CommunityHubScreenState extends State<CommunityHubScreen> {
   }
 
   Widget _statDivider() =>
-      Container(width: 1, height: 30, color: Colors.white.withOpacity(0.2));
+      Container(width: 1, height: 30, color: Colors.white.withValues(alpha: 0.2));
 
   Widget _buildEmpty() {
     return Center(
@@ -519,19 +519,6 @@ class _CommunityHubScreenState extends State<CommunityHubScreen> {
         ],
       ),
     );
-  }
-
-  Color _urgencyColor(String u) {
-    switch (u) {
-      case 'High':
-        return Colors.red;
-      case 'Medium':
-        return Colors.orange;
-      case 'Low':
-        return Colors.green;
-      default:
-        return Colors.grey;
-    }
   }
 
   String _formatNum(int n) =>
@@ -555,24 +542,16 @@ class _SurveyHubCard extends StatelessWidget {
     required this.onViewAnalytics,
   });
 
-  Color _urgencyColor(String u) {
-    switch (u) {
-      case 'High':
-        return Colors.red;
-      case 'Medium':
-        return Colors.orange;
-      case 'Low':
-        return Colors.green;
-      default:
-        return Colors.grey;
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     final myId = FirebaseAuth.instance.currentUser?.uid ?? '';
     final baseColor = const Color(0xFFF2F2F2);
-    final urgColor = _urgencyColor(survey.urgency);
+    Color urgColor;
+    switch (survey.urgency) {
+      case 'High': urgColor = Colors.red; break;
+      case 'Medium': urgColor = Colors.orange; break;
+      default: urgColor = Colors.green;
+    }
     final dateStr =
         '${survey.date.day}/${survey.date.month}/${survey.date.year}';
 
@@ -620,10 +599,10 @@ class _SurveyHubCard extends StatelessWidget {
                             vertical: 3,
                           ),
                           decoration: BoxDecoration(
-                            color: urgColor.withOpacity(0.12),
+                            color: urgColor.withValues(alpha: 0.12),
                             borderRadius: BorderRadius.circular(10),
                             border: Border.all(
-                              color: urgColor.withOpacity(0.4),
+                              color: urgColor.withValues(alpha: 0.4),
                             ),
                           ),
                           child: Row(
@@ -755,7 +734,7 @@ class _SurveyHubCard extends StatelessWidget {
                                     vertical: 3,
                                   ),
                                   decoration: BoxDecoration(
-                                    color: Colors.deepPurple.withOpacity(0.08),
+                                    color: Colors.deepPurple.withValues(alpha: 0.08),
                                     borderRadius: BorderRadius.circular(10),
                                   ),
                                   child: Row(
@@ -839,12 +818,12 @@ class _SurveyHubCard extends StatelessWidget {
                                       decoration: BoxDecoration(
                                         color: const Color(
                                           0xFF8A2387,
-                                        ).withOpacity(0.1),
+                                        ).withValues(alpha: 0.1),
                                         borderRadius: BorderRadius.circular(10),
                                         border: Border.all(
                                           color: const Color(
                                             0xFF8A2387,
-                                          ).withOpacity(0.3),
+                                          ).withValues(alpha: 0.3),
                                         ),
                                       ),
                                       child: const Row(
@@ -989,7 +968,7 @@ class _SurveyHubCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
+        color: color.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(20),
       ),
       child: Row(

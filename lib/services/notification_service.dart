@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -21,12 +22,9 @@ class NotificationService {
     _firebaseMessaging.onTokenRefresh.listen(_saveTokenToDatabase);
 
     // Foreground notifications handler
-    FirebaseMessaging.onMessage.listen((RemoteMessage message) {
-      print('Got a message whilst in the foreground!');
-      print('Message data: ${message.data}');
+    FirebaseMessaging.onMessage.listen((RemoteMessage message) { debugPrint('Got a message whilst in the foreground!'); debugPrint('Message data: ${message.data}');
 
-      if (message.notification != null) {
-        print('Message also contained a notification: ${message.notification}');
+      if (message.notification != null) { debugPrint('Message also contained a notification: ${message.notification}');
       }
       // You could push these into a local UI state / snackbar here
     });

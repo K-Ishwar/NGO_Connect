@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../models/feedback_model.dart';
 import 'task_service.dart';
@@ -17,8 +18,7 @@ class FeedbackService {
       // Update the underlying task status to 'completed'
       final taskSuccess = await _taskService.completeTask(feedback.taskId);
       return taskSuccess;
-    } catch (e) {
-      print('Error submitting feedback: $e');
+    } catch (e) { debugPrint('Error submitting feedback: $e');
       return false;
     }
   }

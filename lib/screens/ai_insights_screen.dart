@@ -76,7 +76,7 @@ class _AiInsightsScreenState extends State<AiInsightsScreen> {
             end: Alignment.bottomRight,
             colors: [
               const Color(0xFFF2F2F2),
-              const Color(0xFFE6E6FA).withOpacity(0.6),
+              const Color(0xFFE6E6FA).withValues(alpha: 0.6),
               const Color(0xFFF2F2F2),
             ],
           ),

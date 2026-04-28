@@ -30,6 +30,30 @@ class NgoDashboard extends StatefulWidget {
 class _NgoDashboardState extends State<NgoDashboard> {
   final Color baseColor = const Color(0xFFF2F2F2);
   String? _selectedProblemType;
+  String _ngoName = 'NGO Dashboard';
+
+  @override
+  void initState() {
+    super.initState();
+    _loadNgoName();
+  }
+
+  Future<void> _loadNgoName() async {
+    final uid = FirebaseAuth.instance.currentUser?.uid ?? '';
+    if (uid.isEmpty) return;
+    try {
+      final doc = await FirebaseFirestore.instance.collection('users').doc(uid).get();
+      if (doc.exists && mounted) {
+        final data = doc.data() as Map<String, dynamic>;
+        setState(() {
+          // Use ngo_name (org name) if available, else fall back to name
+          _ngoName = (data['ngo_name'] as String?)?.isNotEmpty == true
+              ? data['ngo_name'] as String
+              : (data['name'] as String? ?? 'NGO Dashboard');
+        });
+      }
+    } catch (_) {}
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -58,32 +82,37 @@ class _NgoDashboardState extends State<NgoDashboard> {
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
               child: Row(
                 children: [
-                  // Logo + Title
+                  // Logo
                   Container(
                     width: 38, height: 38,
                     decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.2),
+                      color: Colors.white.withValues(alpha: 0.2),
                       borderRadius: BorderRadius.circular(10),
                     ),
                     child: const Icon(Icons.volunteer_activism, color: Colors.white, size: 22),
                   ),
                   const SizedBox(width: 10),
-                  const Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text('NGO Connect',
-                          style: TextStyle(
+                  // NGO Name (dynamic from Firestore)
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          _ngoName,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
                             color: Colors.white,
                             fontWeight: FontWeight.bold,
-                            fontSize: 16,
-                            letterSpacing: 0.5,
-                          )),
-                      Text('Dashboard & Analytics',
-                          style: TextStyle(color: Colors.white70, fontSize: 10)),
-                    ],
+                            fontSize: 15,
+                            letterSpacing: 0.3,
+                          ),
+                        ),
+                        const Text('Dashboard & Analytics',
+                            style: TextStyle(color: Colors.white70, fontSize: 10)),
+                      ],
+                    ),
                   ),
-                  const Spacer(),
 
 
                   // Profile avatar button
@@ -98,9 +127,9 @@ class _NgoDashboardState extends State<NgoDashboard> {
                     child: Container(
                       width: 34, height: 34,
                       decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.18),
+                        color: Colors.white.withValues(alpha: 0.18),
                         shape: BoxShape.circle,
-                        border: Border.all(color: Colors.white.withOpacity(0.5), width: 1.5),
+                        border: Border.all(color: Colors.white.withValues(alpha: 0.5), width: 1.5),
                       ),
                       child: const Icon(Icons.person, color: Colors.white, size: 18),
                     ),
@@ -112,9 +141,9 @@ class _NgoDashboardState extends State<NgoDashboard> {
                     child: Container(
                       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                       decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.15),
+                        color: Colors.white.withValues(alpha: 0.15),
                         borderRadius: BorderRadius.circular(20),
-                        border: Border.all(color: Colors.white.withOpacity(0.4)),
+                        border: Border.all(color: Colors.white.withValues(alpha: 0.4)),
                       ),
                       child: const Row(
                         children: [
@@ -139,7 +168,7 @@ class _NgoDashboardState extends State<NgoDashboard> {
             end: Alignment.bottomRight,
             colors: [
               const Color(0xFFF2F2F2),
-              const Color(0xFFE6E6FA).withOpacity(0.5),
+              const Color(0xFFE6E6FA).withValues(alpha: 0.5),
               const Color(0xFFF2F2F2),
             ],
           ),
@@ -184,7 +213,7 @@ class _NgoDashboardState extends State<NgoDashboard> {
             borderRadius: BorderRadius.circular(30),
             boxShadow: [
               BoxShadow(
-                color: const Color(0xFFE94057).withOpacity(0.4),
+                color: const Color(0xFFE94057).withValues(alpha: 0.4),
                 blurRadius: 12,
                 offset: const Offset(0, 6),
               ),
@@ -212,91 +241,7 @@ class _NgoDashboardState extends State<NgoDashboard> {
     );
   }
 
-  /// Frosted glass icon button for app bar
-  Widget _appBarAction(IconData icon, String tooltip, VoidCallback onTap) {
-    return Tooltip(
-      message: tooltip,
-      child: GestureDetector(
-        onTap: onTap,
-        child: Container(
-          width: 34, height: 34,
-          decoration: BoxDecoration(
-            color: Colors.white.withOpacity(0.15),
-            borderRadius: BorderRadius.circular(10),
-            border: Border.all(color: Colors.white.withOpacity(0.3), width: 1),
-          ),
-          child: Icon(icon, color: Colors.white, size: 18),
-        ),
-      ),
-    );
-  }
 
-  Widget _buildQuickActionCard(BuildContext context, String title, IconData icon, Color color, VoidCallback onTap) {
-    return Container(
-      width: 130,
-      margin: const EdgeInsets.only(bottom: 14),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: color.withOpacity(0.2),
-            blurRadius: 12,
-            offset: const Offset(0, 6),
-          )
-        ],
-      ),
-      child: Material(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        clipBehavior: Clip.antiAlias,
-        child: InkWell(
-          onTap: onTap,
-          splashColor: color.withOpacity(0.2),
-          highlightColor: color.withOpacity(0.1),
-          child: Container(
-            decoration: BoxDecoration(
-              border: Border.all(color: color.withOpacity(0.3), width: 1.5),
-              borderRadius: BorderRadius.circular(16),
-            ),
-            child: Padding(
-              padding: const EdgeInsets.symmetric(vertical: 14),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(14),
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        colors: [color.withOpacity(0.7), color],
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                      ),
-                      shape: BoxShape.circle,
-                      boxShadow: [
-                        BoxShadow(color: color.withOpacity(0.4), blurRadius: 6, offset: const Offset(0, 3)),
-                      ],
-                    ),
-                    child: Icon(icon, color: Colors.white, size: 26),
-                  ),
-                  const SizedBox(height: 10),
-                  Text(
-                    title,
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.grey.shade900,
-                      height: 1.2,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
 
   Widget _buildQuickActionsVerticalSidebar(BuildContext context) {
     final screenW = MediaQuery.of(context).size.width;
@@ -308,41 +253,34 @@ class _NgoDashboardState extends State<NgoDashboard> {
     return SizedBox(
       width: sidebarW,
       child: Padding(
-        padding: EdgeInsets.only(left: screenW < 380 ? 8 : 12, top: 16, bottom: 16, right: 4),
+        padding: const EdgeInsets.only(left: 6, top: 16, bottom: 16, right: 4),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            Padding(
-              padding: const EdgeInsets.only(left: 2, bottom: 12),
-              child: Row(
-                children: [
-                  Container(width: 3, height: 18,
-                    decoration: BoxDecoration(
-                      gradient: const LinearGradient(colors: [Color(0xFF8A2387), Color(0xFFE94057)]),
-                      borderRadius: BorderRadius.circular(2),
-                    ),
-                  ),
-                  const SizedBox(width: 6),
-                  Text('⚡ Actions', style: TextStyle(
-                    fontSize: fontSize + 1, fontWeight: FontWeight.bold, color: Colors.deepPurple)),
-                ],
+            // Simple accent mark instead of overflowing row
+            Container(
+              margin: const EdgeInsets.only(bottom: 12),
+              width: 28, height: 3,
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(colors: [Color(0xFF8A2387), Color(0xFFE94057)]),
+                borderRadius: BorderRadius.circular(2),
               ),
             ),
             Expanded(
               child: ListView(
                 padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 2),
                 children: [
-                  _buildCompactActionCard(context, 'Community\nHub', Icons.public, const Color(0xFF8A2387), iconSize, fontSize,
+                  _buildCompactActionCard(context, 'Hub', Icons.public, const Color(0xFF8A2387), iconSize, fontSize,
                       () => Navigator.push(context, MaterialPageRoute(builder: (_) => const CommunityHubScreen()))),
-                  _buildCompactActionCard(context, 'Register\nVolunteer', Icons.person_add_alt_1, Colors.deepOrange, iconSize, fontSize,
+                  _buildCompactActionCard(context, 'Register', Icons.person_add_alt_1, Colors.deepOrange, iconSize, fontSize,
                       () => Navigator.push(context, MaterialPageRoute(builder: (_) => const RegisterVolunteerScreen()))),
-                  _buildCompactActionCard(context, 'Live\nHeatmap', Icons.map_outlined, Colors.red, iconSize, fontSize,
+                  _buildCompactActionCard(context, 'Heatmap', Icons.map_outlined, Colors.red, iconSize, fontSize,
                       () => Navigator.push(context, MaterialPageRoute(builder: (_) => const HeatmapScreen()))),
-                  _buildCompactActionCard(context, 'AI\nInsights', Icons.psychology, Colors.purple, iconSize, fontSize,
+                  _buildCompactActionCard(context, 'AI', Icons.psychology, Colors.purple, iconSize, fontSize,
                       () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AiInsightsScreen()))),
-                  _buildCompactActionCard(context, 'Feedback\nHistory', Icons.history, Colors.blue, iconSize, fontSize,
+                  _buildCompactActionCard(context, 'History', Icons.history, Colors.blue, iconSize, fontSize,
                       () => Navigator.push(context, MaterialPageRoute(builder: (_) => const FeedbackHistoryScreen()))),
-                  _buildCompactActionCard(context, 'Push\nAlerts', Icons.notifications_outlined, Colors.teal, iconSize, fontSize,
+                  _buildCompactActionCard(context, 'Alerts', Icons.notifications_outlined, Colors.teal, iconSize, fontSize,
                       () => Navigator.push(context, MaterialPageRoute(builder: (_) => const NotificationScreen()))),
                 ],
               ),
@@ -360,8 +298,8 @@ class _NgoDashboardState extends State<NgoDashboard> {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: color.withOpacity(0.25), width: 1.2),
-        boxShadow: [BoxShadow(color: color.withOpacity(0.15), blurRadius: 8, offset: const Offset(0, 4))],
+        border: Border.all(color: color.withValues(alpha: 0.25), width: 1.2),
+        boxShadow: [BoxShadow(color: color.withValues(alpha: 0.15), blurRadius: 8, offset: const Offset(0, 4))],
       ),
       child: Material(
         color: Colors.transparent,
@@ -369,7 +307,7 @@ class _NgoDashboardState extends State<NgoDashboard> {
         clipBehavior: Clip.antiAlias,
         child: InkWell(
           onTap: onTap,
-          splashColor: color.withOpacity(0.15),
+          splashColor: color.withValues(alpha: 0.15),
           child: Padding(
             padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 4),
             child: Column(
@@ -378,9 +316,9 @@ class _NgoDashboardState extends State<NgoDashboard> {
                 Container(
                   padding: EdgeInsets.all(iconSize < 22 ? 8 : 10),
                   decoration: BoxDecoration(
-                    gradient: LinearGradient(colors: [color.withOpacity(0.8), color]),
+                    gradient: LinearGradient(colors: [color.withValues(alpha: 0.8), color]),
                     shape: BoxShape.circle,
-                    boxShadow: [BoxShadow(color: color.withOpacity(0.3), blurRadius: 6, offset: const Offset(0, 3))],
+                    boxShadow: [BoxShadow(color: color.withValues(alpha: 0.3), blurRadius: 6, offset: const Offset(0, 3))],
                   ),
                   child: Icon(icon, color: Colors.white, size: iconSize),
                 ),
@@ -546,7 +484,7 @@ class _NgoDashboardState extends State<NgoDashboard> {
                     width: 140, height: 140,
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      gradient: LinearGradient(colors: [const Color(0xFF8A2387).withOpacity(0.1), const Color(0xFFE94057).withOpacity(0.1)]),
+                      gradient: LinearGradient(colors: [const Color(0xFF8A2387).withValues(alpha: 0.1), const Color(0xFFE94057).withValues(alpha: 0.1)]),
                     ),
                     child: const Icon(Icons.analytics_outlined, size: 70, color: Color(0xFF8A2387)),
                   ),
@@ -561,7 +499,7 @@ class _NgoDashboardState extends State<NgoDashboard> {
                       padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                       elevation: 8,
-                      shadowColor: const Color(0xFF8A2387).withOpacity(0.5),
+                      shadowColor: const Color(0xFF8A2387).withValues(alpha: 0.5),
                     ),
                     onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AddSurveyScreen())),
                     icon: const Icon(Icons.add, color: Colors.white),
@@ -769,8 +707,8 @@ class _NgoDashboardState extends State<NgoDashboard> {
       Colors.deepPurple, Colors.orange, Colors.redAccent, 
       Colors.green, Colors.blueAccent, Colors.pink, Colors.teal
     ];
-    int idx = 0;
     
+
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 4.0),
       child: ClayContainer(
@@ -933,7 +871,7 @@ class _NgoDashboardState extends State<NgoDashboard> {
               trailing: Container(
                 padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                 decoration: BoxDecoration(
-                  color: Colors.deepPurple.withOpacity(0.1),
+                  color: Colors.deepPurple.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(20),
                 ),
                 child: Text(
@@ -963,7 +901,7 @@ class _NgoDashboardState extends State<NgoDashboard> {
                   padding: const EdgeInsets.all(20),
                   decoration: BoxDecoration(
                     gradient: LinearGradient(
-                      colors: [const Color(0xFF8A2387).withOpacity(0.1), const Color(0xFFE94057).withOpacity(0.08)],
+                      colors: [const Color(0xFF8A2387).withValues(alpha: 0.1), const Color(0xFFE94057).withValues(alpha: 0.08)],
                     ),
                     shape: BoxShape.circle,
                   ),
@@ -1101,7 +1039,7 @@ class _NgoDashboardState extends State<NgoDashboard> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.2),
+        color: color.withValues(alpha: 0.2),
         borderRadius: BorderRadius.circular(12),
       ),
       child: Text(
@@ -1115,23 +1053,6 @@ class _NgoDashboardState extends State<NgoDashboard> {
     );
   }
 
-  Widget _buildEmptyState(String message) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 20.0),
-      child: Center(
-        child: Column(
-          children: [
-            Icon(Icons.inbox_outlined, size: 48, color: Colors.grey.shade400),
-            const SizedBox(height: 8),
-            Text(
-              message,
-              style: TextStyle(color: Colors.grey.shade500, fontStyle: FontStyle.italic),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
 
   // ── Camps Section ──────────────────────────────────────────────────────────
   Widget _buildCampsSection() {
@@ -1179,7 +1100,7 @@ class _NgoDashboardState extends State<NgoDashboard> {
                         padding: const EdgeInsets.all(20),
                         decoration: BoxDecoration(
                           gradient: LinearGradient(
-                            colors: [const Color(0xFF5F72BD).withOpacity(0.12), const Color(0xFF8A2387).withOpacity(0.08)],
+                            colors: [const Color(0xFF5F72BD).withValues(alpha: 0.12), const Color(0xFF8A2387).withValues(alpha: 0.08)],
                           ),
                           shape: BoxShape.circle,
                         ),
@@ -1247,9 +1168,9 @@ class _NgoDashboardState extends State<NgoDashboard> {
                             Container(
                               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                               decoration: BoxDecoration(
-                                color: statusColor.withOpacity(0.12),
+                                color: statusColor.withValues(alpha: 0.12),
                                 borderRadius: BorderRadius.circular(10),
-                                border: Border.all(color: statusColor.withOpacity(0.4)),
+                                border: Border.all(color: statusColor.withValues(alpha: 0.4)),
                               ),
                               child: Text(camp.status.toUpperCase(),
                                   style: TextStyle(color: statusColor, fontSize: 10, fontWeight: FontWeight.bold)),

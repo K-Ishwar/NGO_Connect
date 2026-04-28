@@ -206,7 +206,7 @@ class _CampDetailScreenState extends State<CampDetailScreen> {
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                           decoration: BoxDecoration(
-                            color: Colors.white.withOpacity(0.2),
+                            color: Colors.white.withValues(alpha: 0.2),
                             borderRadius: BorderRadius.circular(20),
                           ),
                           child: Row(
@@ -262,9 +262,9 @@ class _CampDetailScreenState extends State<CampDetailScreen> {
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                         decoration: BoxDecoration(
-                          color: Colors.orange.withOpacity(0.1),
+                          color: Colors.orange.withValues(alpha: 0.1),
                           borderRadius: BorderRadius.circular(20),
-                          border: Border.all(color: Colors.orange.withOpacity(0.5)),
+                          border: Border.all(color: Colors.orange.withValues(alpha: 0.5)),
                         ),
                         child: Text(r, style: const TextStyle(fontSize: 12, color: Colors.deepOrange, fontWeight: FontWeight.w600)),
                       )
@@ -289,9 +289,9 @@ class _CampDetailScreenState extends State<CampDetailScreen> {
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                         decoration: BoxDecoration(
-                          color: Colors.purple.withOpacity(0.1),
+                          color: Colors.purple.withValues(alpha: 0.1),
                           borderRadius: BorderRadius.circular(20),
-                          border: Border.all(color: Colors.purple.withOpacity(0.5)),
+                          border: Border.all(color: Colors.purple.withValues(alpha: 0.5)),
                         ),
                         child: Text(s, style: const TextStyle(fontSize: 12, color: Colors.purple, fontWeight: FontWeight.w600)),
                       )
@@ -315,7 +315,7 @@ class _CampDetailScreenState extends State<CampDetailScreen> {
                         gradient: const LinearGradient(colors: [Color(0xFF8A2387), Color(0xFFE94057)]),
                         borderRadius: BorderRadius.circular(14),
                         boxShadow: [BoxShadow(
-                          color: const Color(0xFFE94057).withOpacity(0.3),
+                          color: const Color(0xFFE94057).withValues(alpha: 0.3),
                           blurRadius: 12, offset: const Offset(0, 6),
                         )],
                       ),
@@ -403,7 +403,7 @@ class _CampDetailScreenState extends State<CampDetailScreen> {
                                   Row(
                                     children: [
                                       CircleAvatar(
-                                        backgroundColor: const Color(0xFF8A2387).withOpacity(0.15),
+                                        backgroundColor: const Color(0xFF8A2387).withValues(alpha: 0.15),
                                         child: Text(name.isNotEmpty ? name[0].toUpperCase() : 'V',
                                             style: const TextStyle(color: Color(0xFF8A2387), fontWeight: FontWeight.bold)),
                                       ),
@@ -421,7 +421,7 @@ class _CampDetailScreenState extends State<CampDetailScreen> {
                                       Container(
                                         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                                         decoration: BoxDecoration(
-                                          color: _statusColor(assignment.status).withOpacity(0.15),
+                                          color: _statusColor(assignment.status).withValues(alpha: 0.15),
                                           borderRadius: BorderRadius.circular(10),
                                         ),
                                         child: Text(assignment.status,

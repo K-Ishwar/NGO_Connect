@@ -204,7 +204,7 @@ class _SurveyResponseScreenState extends State<SurveyResponseScreen> {
         decoration: BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topLeft, end: Alignment.bottomRight,
-            colors: [const Color(0xFFF2F2F2), const Color(0xFFE6E6FA).withOpacity(0.5), const Color(0xFFF2F2F2)],
+            colors: [const Color(0xFFF2F2F2), const Color(0xFFE6E6FA).withValues(alpha: 0.5), const Color(0xFFF2F2F2)],
           ),
         ),
         child: SingleChildScrollView(
@@ -310,7 +310,7 @@ class _SurveyResponseScreenState extends State<SurveyResponseScreen> {
                             borderRadius: BorderRadius.circular(14),
                             boxShadow: [
                               BoxShadow(
-                                color: const Color(0xFFE94057).withOpacity(0.35),
+                                color: const Color(0xFFE94057).withValues(alpha: 0.35),
                                 blurRadius: 12, offset: const Offset(0, 6),
                               ),
                             ],
@@ -339,7 +339,7 @@ class _SurveyResponseScreenState extends State<SurveyResponseScreen> {
                             borderRadius: BorderRadius.circular(14),
                             boxShadow: [
                               BoxShadow(
-                                color: Colors.green.withOpacity(0.3),
+                                color: Colors.green.withValues(alpha: 0.3),
                                 blurRadius: 12, offset: const Offset(0, 6),
                               ),
                             ],
@@ -385,7 +385,7 @@ class _SurveyResponseScreenState extends State<SurveyResponseScreen> {
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                     decoration: BoxDecoration(
-                      color: color.withOpacity(0.1),
+                      color: color.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(10),
                     ),
                     child: Text(
@@ -533,7 +533,7 @@ class _SurveyResponseScreenState extends State<SurveyResponseScreen> {
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
                   gradient: const LinearGradient(colors: [Color(0xFF8A2387), Color(0xFFE94057)]),
-                  boxShadow: [BoxShadow(color: const Color(0xFFE94057).withOpacity(0.4), blurRadius: 20)],
+                  boxShadow: [BoxShadow(color: const Color(0xFFE94057).withValues(alpha: 0.4), blurRadius: 20)],
                 ),
                 child: const Icon(Icons.check, color: Colors.white, size: 50),
               ),

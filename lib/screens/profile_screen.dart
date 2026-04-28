@@ -130,7 +130,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             end: Alignment.bottomRight,
             colors: [
               const Color(0xFFF2F2F2),
-              const Color(0xFFE6E6FA).withOpacity(0.5),
+              const Color(0xFFE6E6FA).withValues(alpha: 0.5),
               const Color(0xFFF2F2F2),
             ],
           ),
@@ -244,7 +244,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                     BoxShadow(
                                       color: const Color(
                                         0xFFE94057,
-                                      ).withOpacity(0.4),
+                                      ).withValues(alpha: 0.4),
                                       blurRadius: 15,
                                       offset: const Offset(0, 8),
                                     ),

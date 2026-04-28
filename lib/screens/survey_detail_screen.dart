@@ -273,7 +273,7 @@ class _SurveyDetailScreenState extends State<SurveyDetailScreen> {
                           final rawSkills = data['skills'];
                           String skillsDisplay = '';
                           if (rawSkills is List) {
-                            skillsDisplay = (rawSkills as List).join(', ');
+                            skillsDisplay = rawSkills.join(', ');
                           } else if (rawSkills is String) {
                             skillsDisplay = rawSkills;
                           }

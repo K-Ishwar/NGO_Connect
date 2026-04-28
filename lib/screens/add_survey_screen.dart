@@ -242,9 +242,9 @@ class _AddSurveyScreenState extends State<AddSurveyScreen> {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
         decoration: BoxDecoration(
-          color: color.withOpacity(0.1),
+          color: color.withValues(alpha: 0.1),
           borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: color.withOpacity(0.5)),
+          border: Border.all(color: color.withValues(alpha: 0.5)),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
@@ -307,7 +307,7 @@ class _AddSurveyScreenState extends State<AddSurveyScreen> {
             end: Alignment.bottomRight,
             colors: [
               const Color(0xFFF2F2F2),
-              const Color(0xFFE6E6FA).withOpacity(0.5),
+              const Color(0xFFE6E6FA).withValues(alpha: 0.5),
               const Color(0xFFF2F2F2),
             ],
           ),
@@ -353,7 +353,7 @@ class _AddSurveyScreenState extends State<AddSurveyScreen> {
                       borderRadius: BorderRadius.circular(14),
                       boxShadow: [
                         BoxShadow(
-                          color: const Color(0xFF8A2387).withOpacity(0.3),
+                          color: const Color(0xFF8A2387).withValues(alpha: 0.3),
                           blurRadius: 10, offset: const Offset(0, 4),
                         )
                       ],
@@ -441,7 +441,7 @@ class _AddSurveyScreenState extends State<AddSurveyScreen> {
                                 Container(
                                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                                   decoration: BoxDecoration(
-                                    color: color.withOpacity(0.1),
+                                    color: color.withValues(alpha: 0.1),
                                     borderRadius: BorderRadius.circular(10),
                                   ),
                                   child: Text(
@@ -465,7 +465,7 @@ class _AddSurveyScreenState extends State<AddSurveyScreen> {
                                 hintText: 'Question ${i + 1} (e.g. Do you have clean water access?)',
                                 border: OutlineInputBorder(
                                   borderRadius: BorderRadius.circular(10),
-                                  borderSide: BorderSide(color: color.withOpacity(0.3)),
+                                  borderSide: BorderSide(color: color.withValues(alpha: 0.3)),
                                 ),
                                 contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                               ),
@@ -479,7 +479,7 @@ class _AddSurveyScreenState extends State<AddSurveyScreen> {
                                   hintText: 'Options (comma-separated): Malaria, Dengue, TB, Other',
                                   border: OutlineInputBorder(
                                     borderRadius: BorderRadius.circular(10),
-                                    borderSide: BorderSide(color: Colors.purple.withOpacity(0.3)),
+                                    borderSide: BorderSide(color: Colors.purple.withValues(alpha: 0.3)),
                                   ),
                                   contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                                 ),
@@ -522,7 +522,7 @@ class _AddSurveyScreenState extends State<AddSurveyScreen> {
                             borderRadius: BorderRadius.circular(15),
                             boxShadow: [
                               BoxShadow(
-                                color: const Color(0xFFE94057).withOpacity(0.4),
+                                color: const Color(0xFFE94057).withValues(alpha: 0.4),
                                 blurRadius: 15,
                                 offset: const Offset(0, 8),
                               ),

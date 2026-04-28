@@ -449,7 +449,7 @@ class _CampRecommendationScreenState extends State<CampRecommendationScreen> {
                     return ListTile(
                       key: ValueKey(res + index.toString()),
                       leading: CircleAvatar(
-                        radius: 12, backgroundColor: const Color(0xFF8A2387).withOpacity(0.2),
+                        radius: 12, backgroundColor: const Color(0xFF8A2387).withValues(alpha: 0.2),
                         child: Text('${index + 1}', style: const TextStyle(fontSize: 12, color: Color(0xFF8A2387), fontWeight: FontWeight.bold)),
                       ),
                       title: Text(res, style: const TextStyle(fontSize: 14)),
@@ -477,7 +477,7 @@ class _CampRecommendationScreenState extends State<CampRecommendationScreen> {
                       borderRadius: BorderRadius.circular(15),
                       boxShadow: [
                         BoxShadow(
-                          color: const Color(0xFFE94057).withOpacity(0.4),
+                          color: const Color(0xFFE94057).withValues(alpha: 0.4),
                           blurRadius: 15, offset: const Offset(0, 8),
                         ),
                       ],
@@ -546,9 +546,8 @@ extension on CampModel {
 }
 
 class _ShimmerBlock extends StatefulWidget {
-  final double width;
   final double height;
-  const _ShimmerBlock({this.width = double.infinity, this.height = 16});
+  const _ShimmerBlock({this.height = 16});
 
   @override
   State<_ShimmerBlock> createState() => _ShimmerBlockState();
@@ -573,10 +572,10 @@ class _ShimmerBlockState extends State<_ShimmerBlock> with SingleTickerProviderS
   Widget build(BuildContext context) {
     return AnimatedBuilder(
       animation: _anim,
-      builder: (_, __) => Opacity(
+      builder: (_, _unused) => Opacity(
         opacity: 0.3 + (_anim.value * 0.7),
         child: Container(
-          width: widget.width, height: widget.height,
+          width: double.infinity, height: widget.height,
           decoration: BoxDecoration(color: Colors.grey.shade300, borderRadius: BorderRadius.circular(8)),
         ),
       ),

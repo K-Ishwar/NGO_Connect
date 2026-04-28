@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../models/task_model.dart';
 import '../models/survey_model.dart';
@@ -28,8 +29,7 @@ class TaskService {
       );
 
       return true;
-    } catch (e) {
-      print('Error accepting task: $e');
+    } catch (e) { debugPrint('Error accepting task: $e');
       return false;
     }
   }
@@ -40,8 +40,7 @@ class TaskService {
         'status': 'completed',
       });
       return true;
-    } catch (e) {
-      print('Error completing task: $e');
+    } catch (e) { debugPrint('Error completing task: $e');
       return false;
     }
   }
