@@ -1,5 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 import '../models/user_model.dart';
 
 class AuthService {
@@ -33,6 +34,7 @@ class AuthService {
     String? skills,
     String? location,
     String? availability,
+    String? phoneNumber,
   }) async {
     try {
       UserCredential userCredential = await _auth
@@ -49,6 +51,7 @@ class AuthService {
           skills: skills,
           location: location,
           availability: availability,
+          phoneNumber: phoneNumber,
         );
 
         await _firestore
@@ -81,8 +84,52 @@ class AuthService {
     return null;
   }
 
+  // Google Sign-In
+  Future<UserModel?> signInWithGoogle(String role) async {
+    try {
+      final GoogleSignInAccount? googleUser = await GoogleSignIn().signIn();
+      if (googleUser == null) return null;
+
+      final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
+      final OAuthCredential credential = GoogleAuthProvider.credential(
+        accessToken: googleAuth.accessToken,
+        idToken: googleAuth.idToken,
+      );
+
+      UserCredential userCredential = await _auth.signInWithCredential(credential);
+      User? user = userCredential.user;
+
+      if (user != null) {
+        // Check if user exists
+        DocumentSnapshot doc = await _firestore.collection('users').doc(user.uid).get();
+        if (doc.exists) {
+          return await getUserDetails(user.uid);
+        } else {
+          // Create new user record
+          UserModel userModel = UserModel(
+            id: user.uid,
+            role: role, // Assigned from UI selection during Google Login
+            name: user.displayName ?? 'Google User',
+            email: user.email ?? '',
+          );
+          await _firestore.collection('users').doc(user.uid).set(userModel.toMap());
+          return userModel;
+        }
+      }
+    } catch (e) {
+      print(e.toString());
+    }
+    return null;
+  }
+
   // Logout
   Future<void> logout() async {
+    try {
+      await GoogleSignIn().signOut();
+    } catch (e) {
+      // Ignore errors if Google Sign In is not initialized (e.g. on Web)
+      print('Google sign out error: $e');
+    }
     await _auth.signOut();
   }
 }

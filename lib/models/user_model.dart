@@ -6,6 +6,8 @@ class UserModel {
   final String? skills; // For volunteer
   final String? location; // For volunteer
   final String? availability; // For volunteer
+  final String? fcmToken; // Firebase Cloud Messaging Token
+  final String? phoneNumber; // For WhatsApp notifications
 
   UserModel({
     required this.id,
@@ -15,6 +17,8 @@ class UserModel {
     this.skills,
     this.location,
     this.availability,
+    this.fcmToken,
+    this.phoneNumber,
   });
 
   factory UserModel.fromMap(Map<String, dynamic> map, String documentId) {
@@ -26,6 +30,8 @@ class UserModel {
       skills: map['skills'],
       location: map['location'],
       availability: map['availability'],
+      fcmToken: map['fcmToken'],
+      phoneNumber: map['phone_number'],
     );
   }
 
@@ -37,6 +43,8 @@ class UserModel {
       if (skills != null) 'skills': skills,
       if (location != null) 'location': location,
       if (availability != null) 'availability': availability,
+      if (fcmToken != null) 'fcmToken': fcmToken,
+      if (phoneNumber != null) 'phone_number': phoneNumber,
     };
   }
 }

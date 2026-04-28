@@ -37,6 +37,25 @@ dependencies:
   firebase_core: ^4.7.0
   firebase_auth: ^6.4.0
   cloud_firestore: ^6.3.0
+  firebase_messaging: ^16.2.0
+  intl: ^0.20.2
+  clay_containers: ^0.3.4
+  google_fonts: ^8.0.2
+  google_sign_in: ^6.2.1
+  image_picker: ^1.2.1
+  google_mlkit_text_recognition: ^0.15.1
+  # Offline Sync
+  hive_flutter: ^1.1.0
+  connectivity_plus: ^6.0.5
+  # GIS Heatmap
+  flutter_map: ^7.0.2
+  latlong2: ^0.9.1
+  # WhatsApp
+  url_launcher: ^6.3.1
+  # AI Predictions
+  google_generative_ai: ^0.4.6
+  # HTTP for geocoding
+  http: ^1.2.0
 
 dev_dependencies:
   flutter_test:
