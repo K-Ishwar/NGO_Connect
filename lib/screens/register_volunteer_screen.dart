@@ -4,6 +4,7 @@ import 'package:clay_containers/clay_containers.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:confetti/confetti.dart';
 
 class RegisterVolunteerScreen extends StatefulWidget {
   const RegisterVolunteerScreen({super.key});
@@ -21,9 +22,12 @@ class _RegisterVolunteerScreenState extends State<RegisterVolunteerScreen> {
   final _phoneCtrl = TextEditingController();
   final _locationCtrl = TextEditingController();
   final _expCtrl = TextEditingController();
+  final _customSkillCtrl = TextEditingController();
 
   String _availability = 'Part-time';
   bool _isLoading = false;
+  int _currentStep = 0;
+  late ConfettiController _confettiController;
 
   final _availOptions = ['Full-time', 'Part-time', 'Weekends only'];
 
@@ -35,12 +39,20 @@ class _RegisterVolunteerScreenState extends State<RegisterVolunteerScreen> {
   final Set<String> _selectedSkills = {};
 
   @override
+  void initState() {
+    super.initState();
+    _confettiController = ConfettiController(duration: const Duration(seconds: 3));
+  }
+
+  @override
   void dispose() {
     _nameCtrl.dispose();
     _emailCtrl.dispose();
     _phoneCtrl.dispose();
     _locationCtrl.dispose();
     _expCtrl.dispose();
+    _customSkillCtrl.dispose();
+    _confettiController.dispose();
     super.dispose();
   }
 
@@ -50,14 +62,43 @@ class _RegisterVolunteerScreenState extends State<RegisterVolunteerScreen> {
     return 'NGO@$last4';
   }
 
+  void _nextStep() {
+    if (_currentStep == 0) {
+      if (!_formKey.currentState!.validate()) return;
+      setState(() => _currentStep++);
+    } else if (_currentStep == 1) {
+      if (_selectedSkills.isEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Please select at least one skill.'), backgroundColor: Colors.red),
+        );
+        return;
+      }
+      setState(() => _currentStep++);
+    } else {
+      _register();
+    }
+  }
+
+  void _prevStep() {
+    if (_currentStep > 0) {
+      setState(() => _currentStep--);
+    }
+  }
+
+  void _addCustomSkill() {
+    final skill = _customSkillCtrl.text.trim();
+    if (skill.isNotEmpty) {
+      setState(() {
+        if (!_allSkills.contains(skill)) _allSkills.add(skill);
+        _selectedSkills.add(skill);
+        _customSkillCtrl.clear();
+      });
+    }
+  }
+
   Future<void> _register() async {
     if (!_formKey.currentState!.validate()) return;
-    if (_selectedSkills.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please select at least one skill.'), backgroundColor: Colors.red),
-      );
-      return;
-    }
+    if (_selectedSkills.isEmpty) return;
 
     setState(() => _isLoading = true);
 
@@ -86,6 +127,7 @@ class _RegisterVolunteerScreenState extends State<RegisterVolunteerScreen> {
 
       if (!mounted) return;
       setState(() => _isLoading = false);
+      _confettiController.play();
       _showSuccessDialog(
         name: _nameCtrl.text.trim(),
         email: email,
@@ -241,171 +283,199 @@ class _RegisterVolunteerScreenState extends State<RegisterVolunteerScreen> {
           ),
         ),
       ),
-      body: Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft, end: Alignment.bottomRight,
-            colors: [const Color(0xFFF2F2F2), const Color(0xFFE6E6FA).withOpacity(0.5), const Color(0xFFF2F2F2)],
-          ),
-        ),
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(20),
-          child: Form(
+      body: Stack(
+        children: [
+          Container(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topLeft, end: Alignment.bottomRight,
+                colors: [const Color(0xFFF2F2F2), const Color(0xFFE6E6FA).withOpacity(0.5), const Color(0xFFF2F2F2)],
+              ),
+            ),
+            child: Form(
             key: _formKey,
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                // Banner
-                ClayContainer(
-                  color: baseColor, borderRadius: 16, depth: 15,
-                  child: Container(
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(16),
-                      gradient: LinearGradient(
-                        colors: [const Color(0xFF8A2387).withOpacity(0.1), const Color(0xFFE94057).withOpacity(0.08)],
-                      ),
-                    ),
-                    padding: const EdgeInsets.all(14),
-                    child: const Row(
-                      children: [
-                        Icon(Icons.info_outline, color: Color(0xFF8A2387), size: 20),
-                        SizedBox(width: 10),
-                        Expanded(
-                          child: Text(
-                            'A temporary password will be auto-generated. Share it with the volunteer so they can log in.',
-                            style: TextStyle(fontSize: 12, color: Colors.black54),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 20),
-
-                // ── Personal Details ──────────────────────────
-                _sectionLabel('👤 Personal Details'),
-                _clayInput(_nameCtrl, 'Full Name *', Icons.person,
-                    validator: (v) => v == null || v.isEmpty ? 'Required' : null),
-                const SizedBox(height: 10),
-                _clayInput(_emailCtrl, 'Email Address *', Icons.email,
-                    keyboardType: TextInputType.emailAddress,
-                    validator: (v) {
-                      if (v == null || v.isEmpty) return 'Required';
-                      if (!v.contains('@')) return 'Enter a valid email';
-                      return null;
-                    }),
-                const SizedBox(height: 10),
-                _clayInput(_phoneCtrl, 'Phone Number *', Icons.phone,
-                    keyboardType: TextInputType.phone,
-                    validator: (v) => v == null || v.isEmpty ? 'Required (used for temp password)' : null),
-                const SizedBox(height: 20),
-
-                // ── Location & Experience ─────────────────────
-                _sectionLabel('📍 Location & Experience'),
-                _clayInput(_locationCtrl, 'Area / Location', Icons.location_on),
-                const SizedBox(height: 10),
-                _clayInput(_expCtrl, 'Years of Experience', Icons.workspace_premium,
-                    keyboardType: TextInputType.number),
-                const SizedBox(height: 10),
-
-                // Availability
-                ClayContainer(
-                  color: baseColor, borderRadius: 14, depth: -18,
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-                    child: DropdownButtonFormField<String>(
-                      value: _availability,
-                      decoration: const InputDecoration(
-                        border: InputBorder.none,
-                        labelText: 'Availability',
-                        prefixIcon: Icon(Icons.access_time, color: Color(0xFF8A2387)),
-                      ),
-                      items: _availOptions
-                          .map((a) => DropdownMenuItem(value: a, child: Text(a)))
-                          .toList(),
-                      onChanged: (v) => setState(() => _availability = v!),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 20),
-
-                // ── Skills ────────────────────────────────────
-                _sectionLabel('🎯 Skills (Select all that apply)'),
-                const SizedBox(height: 8),
-                ClayContainer(
-                  color: baseColor, borderRadius: 14, depth: 15,
-                  child: Padding(
-                    padding: const EdgeInsets.all(14),
-                    child: Wrap(
-                      spacing: 8, runSpacing: 8,
-                      children: _allSkills.map((skill) {
-                        final selected = _selectedSkills.contains(skill);
-                        return GestureDetector(
-                          onTap: () => setState(() {
-                            if (selected) _selectedSkills.remove(skill);
-                            else _selectedSkills.add(skill);
-                          }),
-                          child: AnimatedContainer(
-                            duration: const Duration(milliseconds: 180),
-                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                            decoration: BoxDecoration(
-                              gradient: selected
-                                  ? const LinearGradient(colors: [Color(0xFF8A2387), Color(0xFFE94057)])
-                                  : null,
-                              color: selected ? null : Colors.grey.shade100,
-                              borderRadius: BorderRadius.circular(20),
-                              border: Border.all(
-                                color: selected ? Colors.transparent : Colors.grey.shade300,
-                              ),
-                              boxShadow: selected
-                                  ? [BoxShadow(color: const Color(0xFFE94057).withOpacity(0.25),
-                                      blurRadius: 6, offset: const Offset(0, 3))]
-                                  : [],
+                Expanded(
+                  child: Stepper(
+                    type: StepperType.horizontal,
+                    currentStep: _currentStep,
+                    onStepContinue: _nextStep,
+                    onStepCancel: _prevStep,
+                    onStepTapped: (step) => setState(() => _currentStep = step),
+                    controlsBuilder: (context, details) {
+                      return Padding(
+                        padding: const EdgeInsets.only(top: 24),
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: _isLoading
+                                  ? const Center(child: CircularProgressIndicator(color: Color(0xFF8A2387)))
+                                  : ElevatedButton(
+                                      style: ElevatedButton.styleFrom(
+                                        backgroundColor: const Color(0xFF8A2387),
+                                        padding: const EdgeInsets.symmetric(vertical: 14),
+                                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                                      ),
+                                      onPressed: details.onStepContinue,
+                                      child: Text(
+                                        _currentStep == 2 ? 'REGISTER VOLUNTEER' : 'NEXT STEP',
+                                        style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                                      ),
+                                    ),
                             ),
-                            child: Text(skill,
-                                style: TextStyle(
-                                  color: selected ? Colors.white : Colors.black54,
-                                  fontSize: 12, fontWeight: FontWeight.w600,
-                                )),
-                          ),
-                        );
-                      }).toList(),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 32),
-
-                // Submit
-                _isLoading
-                    ? const Center(child: CircularProgressIndicator(color: Color(0xFF8A2387)))
-                    : GestureDetector(
-                        onTap: _register,
-                        child: Container(
-                          decoration: BoxDecoration(
-                            gradient: const LinearGradient(colors: [Color(0xFF8A2387), Color(0xFFE94057)]),
-                            borderRadius: BorderRadius.circular(15),
-                            boxShadow: [BoxShadow(
-                              color: const Color(0xFFE94057).withOpacity(0.4),
-                              blurRadius: 15, offset: const Offset(0, 8),
-                            )],
-                          ),
-                          padding: const EdgeInsets.symmetric(vertical: 16),
-                          child: const Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Icon(Icons.person_add, color: Colors.white),
-                              SizedBox(width: 10),
-                              Text('REGISTER VOLUNTEER',
-                                  style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, letterSpacing: 1.2)),
-                            ],
-                          ),
+                            if (_currentStep > 0 && !_isLoading) ...[
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: OutlinedButton(
+                                  style: OutlinedButton.styleFrom(
+                                    padding: const EdgeInsets.symmetric(vertical: 14),
+                                    side: const BorderSide(color: Color(0xFF8A2387)),
+                                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                                  ),
+                                  onPressed: details.onStepCancel,
+                                  child: const Text('BACK', style: TextStyle(color: Color(0xFF8A2387), fontWeight: FontWeight.bold)),
+                                ),
+                              ),
+                            ]
+                          ],
+                        ),
+                      );
+                    },
+                    steps: [
+                      Step(
+                        title: const Text('Personal', style: TextStyle(fontSize: 12)),
+                        isActive: _currentStep >= 0,
+                        state: _currentStep > 0 ? StepState.complete : StepState.indexed,
+                        content: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            _clayInput(_nameCtrl, 'Full Name *', Icons.person,
+                                validator: (v) => v == null || v.isEmpty ? 'Required' : null),
+                            const SizedBox(height: 16),
+                            _clayInput(_emailCtrl, 'Email Address *', Icons.email,
+                                keyboardType: TextInputType.emailAddress,
+                                validator: (v) {
+                                  if (v == null || v.isEmpty) return 'Required';
+                                  if (!v.contains('@')) return 'Enter a valid email';
+                                  return null;
+                                }),
+                            const SizedBox(height: 16),
+                            _clayInput(_phoneCtrl, 'Phone Number *', Icons.phone,
+                                keyboardType: TextInputType.phone,
+                                validator: (v) => v == null || v.isEmpty ? 'Required (used for temp password)' : null),
+                          ],
                         ),
                       ),
-                const SizedBox(height: 40),
+                      Step(
+                        title: const Text('Skills', style: TextStyle(fontSize: 12)),
+                        isActive: _currentStep >= 1,
+                        state: _currentStep > 1 ? StepState.complete : StepState.indexed,
+                        content: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            _clayInput(_locationCtrl, 'Area / Location', Icons.location_on),
+                            const SizedBox(height: 16),
+                            const Text('Select Skills', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.deepPurple)),
+                            const SizedBox(height: 8),
+                            Wrap(
+                              spacing: 8, runSpacing: 8,
+                              children: _allSkills.map((skill) {
+                                final selected = _selectedSkills.contains(skill);
+                                return FilterChip(
+                                  label: Text(skill, style: TextStyle(fontSize: 11, color: selected ? Colors.white : Colors.black87)),
+                                  selected: selected,
+                                  selectedColor: const Color(0xFF8A2387),
+                                  checkmarkColor: Colors.white,
+                                  onSelected: (val) {
+                                    setState(() {
+                                      if (val) _selectedSkills.add(skill);
+                                      else _selectedSkills.remove(skill);
+                                    });
+                                  },
+                                );
+                              }).toList(),
+                            ),
+                            const SizedBox(height: 16),
+                            Row(
+                              children: [
+                                Expanded(child: _clayInput(_customSkillCtrl, 'Add Custom Skill', Icons.add_circle_outline)),
+                                IconButton(
+                                  icon: const Icon(Icons.check, color: Colors.green),
+                                  onPressed: _addCustomSkill,
+                                )
+                              ],
+                            )
+                          ],
+                        ),
+                      ),
+                      Step(
+                        title: const Text('Availability', style: TextStyle(fontSize: 12)),
+                        isActive: _currentStep >= 2,
+                        content: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            _clayInput(_expCtrl, 'Years of Experience', Icons.workspace_premium,
+                                keyboardType: TextInputType.number),
+                            const SizedBox(height: 16),
+                            DropdownButtonFormField<String>(
+                              value: _availability,
+                              decoration: InputDecoration(
+                                labelText: 'Availability',
+                                prefixIcon: const Icon(Icons.access_time, color: Color(0xFF8A2387)),
+                                border: OutlineInputBorder(borderRadius: BorderRadius.circular(14)),
+                              ),
+                              items: _availOptions
+                                  .map((a) => DropdownMenuItem(value: a, child: Text(a)))
+                                  .toList(),
+                              onChanged: (v) => setState(() => _availability = v!),
+                            ),
+                            const SizedBox(height: 16),
+                            ClayContainer(
+                              color: baseColor, borderRadius: 16, depth: 15,
+                              child: Container(
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(16),
+                                  gradient: LinearGradient(
+                                    colors: [const Color(0xFF8A2387).withOpacity(0.1), const Color(0xFFE94057).withOpacity(0.08)],
+                                  ),
+                                ),
+                                padding: const EdgeInsets.all(14),
+                                child: const Row(
+                                  children: [
+                                    Icon(Icons.info_outline, color: Color(0xFF8A2387), size: 20),
+                                    SizedBox(width: 10),
+                                    Expanded(
+                                      child: Text(
+                                        'A temporary password will be auto-generated. Share it with the volunteer so they can log in.',
+                                        style: TextStyle(fontSize: 12, color: Colors.black54),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
               ],
             ),
           ),
-        ),
+          ),
+          Align(
+            alignment: Alignment.topCenter,
+            child: ConfettiWidget(
+              confettiController: _confettiController,
+              blastDirectionality: BlastDirectionality.explosive,
+              emissionFrequency: 0.05,
+              numberOfParticles: 30,
+              gravity: 0.1,
+            ),
+          ),
+        ],
       ),
     );
   }

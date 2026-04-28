@@ -221,7 +221,7 @@ class _CampDetailScreenState extends State<CampDetailScreen> {
                       ],
                     ),
                     const SizedBox(height: 8),
-                    Text('🏥 ${camp.campType}  •  📍 ${camp.area}',
+                    Text('🏥 ${camp.campType}  •  📍 ${camp.location.isNotEmpty ? camp.location : camp.area}',
                         style: const TextStyle(color: Colors.white70, fontSize: 13)),
                     const SizedBox(height: 4),
                     Text('📅 $dateStr',

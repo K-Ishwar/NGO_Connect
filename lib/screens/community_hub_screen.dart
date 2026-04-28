@@ -15,10 +15,13 @@ class CommunityHubScreen extends StatefulWidget {
 class _CommunityHubScreenState extends State<CommunityHubScreen> {
   final Color baseColor = const Color(0xFFF2F2F2);
   final _searchController = TextEditingController();
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 
   String _filterUrgency = 'All';
   String _filterProblem = 'All';
   String _searchText = '';
+  DateTime? _filterStartDate;
+  DateTime? _filterEndDate;
 
   final _urgencies = ['All', 'High', 'Medium', 'Low'];
   final _problems = ['All', 'Health', 'Food', 'Water & Sanitation', 'Education', 'Shelter', 'Employment', 'Disaster Relief', 'Other'];
@@ -62,7 +65,76 @@ class _CommunityHubScreenState extends State<CommunityHubScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      key: _scaffoldKey,
       backgroundColor: baseColor,
+      endDrawer: Drawer(
+        child: SafeArea(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(16),
+                color: const Color(0xFF8A2387).withOpacity(0.1),
+                child: const Text('Advanced Filters', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF8A2387))),
+              ),
+              const SizedBox(height: 10),
+              // Urgency
+              const Padding(
+                padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                child: Text('Urgency Level', style: TextStyle(fontWeight: FontWeight.bold)),
+              ),
+              ..._urgencies.map((u) => RadioListTile(
+                title: Text(u),
+                value: u,
+                groupValue: _filterUrgency,
+                activeColor: const Color(0xFF8A2387),
+                onChanged: (v) {
+                  setState(() => _filterUrgency = v!);
+                  Navigator.pop(context);
+                },
+              )),
+              const Divider(),
+              // Problem Type
+              const Padding(
+                padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                child: Text('Problem Type', style: TextStyle(fontWeight: FontWeight.bold)),
+              ),
+              Expanded(
+                child: ListView(
+                  children: _problems.map((p) => RadioListTile(
+                    title: Text(p),
+                    value: p,
+                    groupValue: _filterProblem,
+                    activeColor: const Color(0xFF8A2387),
+                    onChanged: (v) {
+                      setState(() => _filterProblem = v!);
+                      Navigator.pop(context);
+                    },
+                  )).toList(),
+                ),
+              ),
+              const Divider(),
+              Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: ElevatedButton.icon(
+                  style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF8A2387)),
+                  icon: const Icon(Icons.clear_all, color: Colors.white),
+                  label: const Text('Reset Filters', style: TextStyle(color: Colors.white)),
+                  onPressed: () {
+                    setState(() {
+                      _filterUrgency = 'All';
+                      _filterProblem = 'All';
+                      _filterStartDate = null;
+                      _filterEndDate = null;
+                    });
+                    Navigator.pop(context);
+                  },
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
       appBar: PreferredSize(
         preferredSize: const Size.fromHeight(70),
         child: Container(
@@ -99,6 +171,10 @@ class _CommunityHubScreenState extends State<CommunityHubScreen> {
                     ],
                   ),
                   const Spacer(),
+                  IconButton(
+                    icon: const Icon(Icons.filter_list, color: Colors.white, size: 24),
+                    onPressed: () => _scaffoldKey.currentState?.openEndDrawer(),
+                  ),
                   IconButton(
                     icon: const Icon(Icons.arrow_back_ios_new, color: Colors.white, size: 18),
                     onPressed: () => Navigator.pop(context),
@@ -176,86 +252,29 @@ class _CommunityHubScreenState extends State<CommunityHubScreen> {
                 // ── Search & Filters ───────────────────────────
                 Container(
                   color: Colors.white,
-                  padding: const EdgeInsets.fromLTRB(12, 10, 12, 4),
-                  child: Column(
-                    children: [
-                      // Search bar
-                      ClayContainer(
-                        color: baseColor, borderRadius: 12, depth: -15,
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 2),
-                          child: TextField(
-                            controller: _searchController,
-                            onChanged: (v) => setState(() => _searchText = v),
-                            decoration: const InputDecoration(
-                              border: InputBorder.none,
-                              hintText: 'Search by area or description...',
-                              icon: Icon(Icons.search, color: Color(0xFF8A2387)),
-                            ),
-                          ),
+                  padding: const EdgeInsets.fromLTRB(12, 10, 12, 10),
+                  child: ClayContainer(
+                    color: baseColor, borderRadius: 12, depth: -15,
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 2),
+                      child: TextField(
+                        controller: _searchController,
+                        onChanged: (v) => setState(() => _searchText = v),
+                        decoration: InputDecoration(
+                          border: InputBorder.none,
+                          hintText: 'Search by area or description...',
+                          icon: const Icon(Icons.search, color: Color(0xFF8A2387)),
+                          suffixIcon: _searchText.isNotEmpty 
+                            ? IconButton(
+                                icon: const Icon(Icons.clear, color: Colors.grey),
+                                onPressed: () {
+                                  _searchController.clear();
+                                  setState(() => _searchText = '');
+                                })
+                            : null,
                         ),
                       ),
-                      const SizedBox(height: 8),
-                      // Urgency filter
-                      SingleChildScrollView(
-                        scrollDirection: Axis.horizontal,
-                        child: Row(
-                          children: [
-                            const Text('Urgency:', style: TextStyle(fontSize: 12, color: Colors.grey, fontWeight: FontWeight.bold)),
-                            const SizedBox(width: 8),
-                            ..._urgencies.map((u) => Padding(
-                              padding: const EdgeInsets.only(right: 6),
-                              child: GestureDetector(
-                                onTap: () => setState(() => _filterUrgency = u),
-                                child: Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                                  decoration: BoxDecoration(
-                                    color: _filterUrgency == u ? _urgencyColor(u) : Colors.grey.shade100,
-                                    borderRadius: BorderRadius.circular(20),
-                                    border: Border.all(color: _filterUrgency == u ? _urgencyColor(u) : Colors.grey.shade300),
-                                  ),
-                                  child: Text(u,
-                                    style: TextStyle(
-                                      color: _filterUrgency == u ? Colors.white : Colors.black54,
-                                      fontSize: 12, fontWeight: FontWeight.bold,
-                                    )),
-                                ),
-                              ),
-                            )),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(height: 6),
-                      // Problem type filter
-                      SingleChildScrollView(
-                        scrollDirection: Axis.horizontal,
-                        child: Row(
-                          children: [
-                            const Text('Type:', style: TextStyle(fontSize: 12, color: Colors.grey, fontWeight: FontWeight.bold)),
-                            const SizedBox(width: 8),
-                            ..._problems.map((p) => Padding(
-                              padding: const EdgeInsets.only(right: 6),
-                              child: GestureDetector(
-                                onTap: () => setState(() => _filterProblem = p),
-                                child: Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                                  decoration: BoxDecoration(
-                                    color: _filterProblem == p ? const Color(0xFF8A2387) : Colors.grey.shade100,
-                                    borderRadius: BorderRadius.circular(20),
-                                  ),
-                                  child: Text(p,
-                                    style: TextStyle(
-                                      color: _filterProblem == p ? Colors.white : Colors.black54,
-                                      fontSize: 11, fontWeight: FontWeight.bold,
-                                    )),
-                                ),
-                              ),
-                            )),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                    ],
+                    ),
                   ),
                 ),
 
@@ -476,18 +495,26 @@ class _SurveyHubCard extends StatelessWidget {
                                   ),
                                   const SizedBox(width: 8),
                                   if (pledges.isNotEmpty)
-                                    Container(
-                                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                                      decoration: BoxDecoration(
-                                        color: Colors.green.shade50,
-                                        borderRadius: BorderRadius.circular(10),
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          Row(children: [
+                                            const Icon(Icons.handshake, size: 11, color: Colors.green),
+                                            const SizedBox(width: 3),
+                                            Text('${pledges.length} NGOs Pledged Support',
+                                                style: const TextStyle(fontSize: 11, color: Colors.green, fontWeight: FontWeight.bold)),
+                                          ]),
+                                          const SizedBox(height: 4),
+                                          LinearProgressIndicator(
+                                            value: (pledges.length / 5).clamp(0.0, 1.0),
+                                            backgroundColor: Colors.green.shade100,
+                                            valueColor: const AlwaysStoppedAnimation<Color>(Colors.green),
+                                            minHeight: 4,
+                                            borderRadius: BorderRadius.circular(2),
+                                          ),
+                                        ],
                                       ),
-                                      child: Row(children: [
-                                        const Icon(Icons.handshake, size: 11, color: Colors.green),
-                                        const SizedBox(width: 3),
-                                        Text('${pledges.length} pledged',
-                                            style: const TextStyle(fontSize: 11, color: Colors.green, fontWeight: FontWeight.bold)),
-                                      ]),
                                     ),
                                 ]),
                                 const SizedBox(height: 10),

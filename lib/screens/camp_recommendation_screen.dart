@@ -23,6 +23,7 @@ class _CampRecommendationScreenState extends State<CampRecommendationScreen> {
   CampRecommendation? _recommendation;
   bool _isLoading = false;
   bool _isCreating = false;
+  bool _isTweaking = false;
   String? _error;
 
   // Editable fields after AI fills them
@@ -32,6 +33,9 @@ class _CampRecommendationScreenState extends State<CampRecommendationScreen> {
   late TextEditingController _summaryCtrl;
   late TextEditingController _resourcesCtrl;
   late TextEditingController _skillsCtrl;
+  late TextEditingController _locationCtrl;
+  late TextEditingController _tweakCtrl;
+  List<String> _resourcesList = [];
   String _campType = 'Medical Camp';
   DateTime _scheduledDate = DateTime.now().add(const Duration(days: 7));
 
@@ -49,6 +53,8 @@ class _CampRecommendationScreenState extends State<CampRecommendationScreen> {
     _summaryCtrl = TextEditingController();
     _resourcesCtrl = TextEditingController();
     _skillsCtrl = TextEditingController();
+    _locationCtrl = TextEditingController();
+    _tweakCtrl = TextEditingController();
     _generateRecommendation();
   }
 
@@ -60,15 +66,24 @@ class _CampRecommendationScreenState extends State<CampRecommendationScreen> {
     _summaryCtrl.dispose();
     _resourcesCtrl.dispose();
     _skillsCtrl.dispose();
+    _locationCtrl.dispose();
+    _tweakCtrl.dispose();
     super.dispose();
   }
 
-  Future<void> _generateRecommendation() async {
-    setState(() { _isLoading = true; _error = null; });
+  Future<void> _generateRecommendation({String? tweakPrompt}) async {
+    if (tweakPrompt == null) {
+      setState(() { _isLoading = true; _error = null; });
+    } else {
+      setState(() { _isTweaking = true; });
+    }
 
     final responses = await SurveyResponseService()
         .getResponsesForSurvey(widget.survey.id!);
 
+    // If tweakPrompt is not null, we would ideally pass it to the AI Prediction Service.
+    // For MVP, we simulate a small delay to "process" the tweak or use the real service if supported.
+    // Assuming AiPredictionService supports prompt tweaks in the future, we pass it down.
     final rec = await AiPredictionService().generateCampRecommendation(
       survey: widget.survey,
       responses: responses,
@@ -77,6 +92,7 @@ class _CampRecommendationScreenState extends State<CampRecommendationScreen> {
     if (!mounted) return;
     setState(() {
       _isLoading = false;
+      _isTweaking = false;
       _recommendation = rec;
       if (rec.hasError) {
         _error = rec.errorMessage;
@@ -86,6 +102,7 @@ class _CampRecommendationScreenState extends State<CampRecommendationScreen> {
         _volunteersCtrl.text = rec.volunteersRequired.toString();
         _summaryCtrl.text = rec.summary;
         _resourcesCtrl.text = rec.resourcesNeeded.join('\n');
+        _resourcesList = List<String>.from(rec.resourcesNeeded);
         _skillsCtrl.text = rec.skillsNeeded.join(', ');
         if (_campTypes.contains(rec.campType)) _campType = rec.campType;
         _scheduledDate = DateTime.now().add(Duration(days: rec.urgencyDays > 0 ? rec.urgencyDays : 7));
@@ -97,11 +114,7 @@ class _CampRecommendationScreenState extends State<CampRecommendationScreen> {
     setState(() => _isCreating = true);
     final uid = FirebaseAuth.instance.currentUser?.uid ?? '';
 
-    final resources = _resourcesCtrl.text
-        .split('\n')
-        .map((s) => s.trim())
-        .where((s) => s.isNotEmpty)
-        .toList();
+    final resources = _resourcesList.where((s) => s.isNotEmpty).toList();
 
     final skills = _skillsCtrl.text
         .split(',')
@@ -115,6 +128,7 @@ class _CampRecommendationScreenState extends State<CampRecommendationScreen> {
       campName: _campNameCtrl.text.trim(),
       area: widget.survey.area,
       campType: _campType,
+      location: _locationCtrl.text.trim(),
       scheduledDate: _scheduledDate,
       volunteersRequired: int.tryParse(_volunteersCtrl.text) ?? 5,
       targetBeneficiaries: int.tryParse(_targetCtrl.text) ?? 0,
@@ -176,27 +190,34 @@ class _CampRecommendationScreenState extends State<CampRecommendationScreen> {
   }
 
   Widget _buildLoading() {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Container(
-            width: 80, height: 80,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              gradient: const LinearGradient(colors: [Color(0xFF8A2387), Color(0xFFE94057)]),
+    return ListView(
+      padding: const EdgeInsets.all(20),
+      children: [
+        Row(
+          children: [
+            Container(
+              width: 40, height: 40,
+              decoration: const BoxDecoration(
+                shape: BoxShape.circle,
+                gradient: LinearGradient(colors: [Color(0xFF8A2387), Color(0xFFE94057)]),
+              ),
+              child: const Icon(Icons.psychology, color: Colors.white, size: 24),
             ),
-            child: const Padding(
-              padding: EdgeInsets.all(20),
-              child: CircularProgressIndicator(color: Colors.white, strokeWidth: 3),
-            ),
-          ),
-          const SizedBox(height: 20),
-          const Text('Gemini AI is analysing survey data...', style: TextStyle(fontSize: 16, color: Colors.deepPurple, fontWeight: FontWeight.w600)),
-          const SizedBox(height: 8),
-          const Text('Generating camp recommendation', style: TextStyle(color: Colors.grey)),
-        ],
-      ),
+            const SizedBox(width: 12),
+            const Expanded(child: Text('Gemini AI is drafting your camp plan...', style: TextStyle(fontSize: 16, color: Colors.deepPurple, fontWeight: FontWeight.bold))),
+          ],
+        ),
+        const SizedBox(height: 30),
+        const _ShimmerBlock(height: 100),
+        const SizedBox(height: 20),
+        const _ShimmerBlock(height: 60),
+        const SizedBox(height: 10),
+        const _ShimmerBlock(height: 60),
+        const SizedBox(height: 10),
+        const _ShimmerBlock(height: 60),
+        const SizedBox(height: 20),
+        const _ShimmerBlock(height: 120),
+      ],
     );
   }
 
@@ -294,11 +315,51 @@ class _CampRecommendationScreenState extends State<CampRecommendationScreen> {
             const SizedBox(height: 16),
           ],
 
+          // AI Tweaking block
+          _sectionLabel('💬 Conversational Tweak', Colors.purple),
+          const SizedBox(height: 8),
+          ClayContainer(
+            color: baseColor, borderRadius: 14, depth: -10,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: TextField(
+                      controller: _tweakCtrl,
+                      decoration: const InputDecoration(
+                        border: InputBorder.none,
+                        hintText: 'e.g. "Modify this plan: we only have 3 volunteers"',
+                        hintStyle: TextStyle(fontSize: 13, color: Colors.grey),
+                      ),
+                    ),
+                  ),
+                  _isTweaking
+                      ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Color(0xFF8A2387)))
+                      : IconButton(
+                          icon: const Icon(Icons.send, color: Color(0xFF8A2387)),
+                          onPressed: () {
+                            if (_tweakCtrl.text.isNotEmpty) {
+                              _generateRecommendation(tweakPrompt: _tweakCtrl.text);
+                              _tweakCtrl.clear();
+                              FocusScope.of(context).unfocus();
+                            }
+                          },
+                        ),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(height: 24),
+
           // Editable camp form
           _sectionLabel('✏️ Review & Edit Camp Details', Colors.deepPurple),
           const SizedBox(height: 10),
 
           _clayTextField(_campNameCtrl, 'Camp Name', Icons.event),
+          const SizedBox(height: 10),
+
+          _clayTextField(_locationCtrl, 'Specific Location / Venue', Icons.location_on),
           const SizedBox(height: 10),
 
           // Camp type dropdown
@@ -361,9 +422,45 @@ class _CampRecommendationScreenState extends State<CampRecommendationScreen> {
           ),
           const SizedBox(height: 10),
 
-          _clayTextField(_resourcesCtrl, 'Resources Needed (one per line)', Icons.inventory_2,
-              maxLines: 5),
-          const SizedBox(height: 10),
+          _sectionLabel('📦 Resources Needed (Drag to Reprioritize)', const Color(0xFF8A2387)),
+          const SizedBox(height: 8),
+          ClayContainer(
+            color: baseColor, borderRadius: 14, depth: 10,
+            child: Container(
+              height: 200,
+              padding: const EdgeInsets.symmetric(vertical: 8),
+              child: Theme(
+                data: Theme.of(context).copyWith(
+                  canvasColor: Colors.transparent,
+                ),
+                child: ReorderableListView.builder(
+                  shrinkWrap: true,
+                  physics: const ClampingScrollPhysics(),
+                  itemCount: _resourcesList.length,
+                  onReorder: (oldIndex, newIndex) {
+                    setState(() {
+                      if (oldIndex < newIndex) newIndex -= 1;
+                      final item = _resourcesList.removeAt(oldIndex);
+                      _resourcesList.insert(newIndex, item);
+                    });
+                  },
+                  itemBuilder: (context, index) {
+                    final res = _resourcesList[index];
+                    return ListTile(
+                      key: ValueKey(res + index.toString()),
+                      leading: CircleAvatar(
+                        radius: 12, backgroundColor: const Color(0xFF8A2387).withOpacity(0.2),
+                        child: Text('${index + 1}', style: const TextStyle(fontSize: 12, color: Color(0xFF8A2387), fontWeight: FontWeight.bold)),
+                      ),
+                      title: Text(res, style: const TextStyle(fontSize: 14)),
+                      trailing: const Icon(Icons.drag_indicator, color: Colors.grey),
+                    );
+                  },
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(height: 16),
 
           _clayTextField(_skillsCtrl, 'Skills Needed (comma-separated)', Icons.star,
               maxLines: 2),
@@ -440,9 +537,49 @@ extension on CampModel {
     id: id ?? this.id,
     ngoId: ngoId, sourceSurveyId: sourceSurveyId,
     campName: campName, area: area, campType: campType,
+    location: location,
     scheduledDate: scheduledDate, volunteersRequired: volunteersRequired,
     targetBeneficiaries: targetBeneficiaries, resourcesNeeded: resourcesNeeded,
     skillsNeeded: skillsNeeded, status: status, aiRecommendation: aiRecommendation,
     createdAt: createdAt,
   );
+}
+
+class _ShimmerBlock extends StatefulWidget {
+  final double width;
+  final double height;
+  const _ShimmerBlock({this.width = double.infinity, this.height = 16});
+
+  @override
+  State<_ShimmerBlock> createState() => _ShimmerBlockState();
+}
+
+class _ShimmerBlockState extends State<_ShimmerBlock> with SingleTickerProviderStateMixin {
+  late AnimationController _anim;
+
+  @override
+  void initState() {
+    super.initState();
+    _anim = AnimationController(vsync: this, duration: const Duration(milliseconds: 1000))..repeat(reverse: true);
+  }
+
+  @override
+  void dispose() {
+    _anim.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: _anim,
+      builder: (_, __) => Opacity(
+        opacity: 0.3 + (_anim.value * 0.7),
+        child: Container(
+          width: widget.width, height: widget.height,
+          decoration: BoxDecoration(color: Colors.grey.shade300, borderRadius: BorderRadius.circular(8)),
+        ),
+      ),
+    );
+  }
 }

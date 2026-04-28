@@ -77,37 +77,7 @@ class NgoDashboard extends StatelessWidget {
                   ),
                   const Spacer(),
 
-                  // Action icon pills
-                  _appBarAction(
-                    Icons.public, 'Community Hub',
-                    () => Navigator.push(context, MaterialPageRoute(builder: (_) => const CommunityHubScreen())),
-                  ),
-                  const SizedBox(width: 4),
-                  _appBarAction(
-                    Icons.person_add_alt_1, 'Register Volunteer',
-                    () => Navigator.push(context, MaterialPageRoute(builder: (_) => const RegisterVolunteerScreen())),
-                  ),
-                  const SizedBox(width: 4),
-                  _appBarAction(
-                    Icons.map_outlined, 'Heatmap',
-                    () => Navigator.push(context, MaterialPageRoute(builder: (_) => const HeatmapScreen())),
-                  ),
-                  const SizedBox(width: 4),
-                  _appBarAction(
-                    Icons.psychology, 'AI Insights',
-                    () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AiInsightsScreen())),
-                  ),
-                  const SizedBox(width: 4),
-                  _appBarAction(
-                    Icons.history, 'History',
-                    () => Navigator.push(context, MaterialPageRoute(builder: (_) => const FeedbackHistoryScreen())),
-                  ),
-                  const SizedBox(width: 4),
-                  _appBarAction(
-                    Icons.notifications_outlined, 'Alerts',
-                    () => Navigator.push(context, MaterialPageRoute(builder: (_) => const NotificationScreen())),
-                  ),
-                  const SizedBox(width: 4),
+
                   // Profile avatar button
                   GestureDetector(
                     onTap: () async {
@@ -168,22 +138,30 @@ class NgoDashboard extends StatelessWidget {
         ),
         child: Center(
           child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 1200),
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.all(16.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            _buildVolunteerAndTasksRow(),
-            const SizedBox(height: 16),
-            _buildSurveysAnalytics(),
-            const SizedBox(height: 16),
-            _buildCampsSection(),
+            constraints: const BoxConstraints(maxWidth: 1400),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _buildQuickActionsVerticalSidebar(context),
+                Expanded(
+                  child: SingleChildScrollView(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        _buildVolunteerAndTasksRow(),
+                        const SizedBox(height: 24),
+                        _buildSurveysAnalytics(),
+                        const SizedBox(height: 16),
+                        _buildCampsSection(),
+                      ],
+                    ),
+                  ),
+                ),
               ],
             ),
           ),
         ),
-      ),
       ),
       floatingActionButton: GestureDetector(
         onTap: () => Navigator.push(
@@ -241,6 +219,106 @@ class NgoDashboard extends StatelessWidget {
           ),
           child: Icon(icon, color: Colors.white, size: 18),
         ),
+      ),
+    );
+  }
+
+  Widget _buildQuickActionCard(BuildContext context, String title, IconData icon, Color color, VoidCallback onTap) {
+    return Container(
+      width: 130,
+      margin: const EdgeInsets.only(bottom: 14),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: color.withOpacity(0.2),
+            blurRadius: 12,
+            offset: const Offset(0, 6),
+          )
+        ],
+      ),
+      child: Material(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        clipBehavior: Clip.antiAlias,
+        child: InkWell(
+          onTap: onTap,
+          splashColor: color.withOpacity(0.2),
+          highlightColor: color.withOpacity(0.1),
+          child: Container(
+            decoration: BoxDecoration(
+              border: Border.all(color: color.withOpacity(0.3), width: 1.5),
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 14),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(14),
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [color.withOpacity(0.7), color],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      ),
+                      shape: BoxShape.circle,
+                      boxShadow: [
+                        BoxShadow(color: color.withOpacity(0.4), blurRadius: 6, offset: const Offset(0, 3)),
+                      ],
+                    ),
+                    child: Icon(icon, color: Colors.white, size: 26),
+                  ),
+                  const SizedBox(height: 10),
+                  Text(
+                    title,
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.grey.shade900,
+                      height: 1.2,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildQuickActionsVerticalSidebar(BuildContext context) {
+    return Container(
+      width: 160,
+      padding: const EdgeInsets.only(left: 16, top: 16, bottom: 16, right: 8),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _buildSectionTitle('⚡ Actions'),
+          const SizedBox(height: 16),
+          Expanded(
+            child: ListView(
+              padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
+              children: [
+                _buildQuickActionCard(context, 'Community\nHub', Icons.public, const Color(0xFF8A2387),
+                    () => Navigator.push(context, MaterialPageRoute(builder: (_) => const CommunityHubScreen()))),
+                _buildQuickActionCard(context, 'Register\nVolunteer', Icons.person_add_alt_1, Colors.deepOrange,
+                    () => Navigator.push(context, MaterialPageRoute(builder: (_) => const RegisterVolunteerScreen()))),
+                _buildQuickActionCard(context, 'Live\nHeatmap', Icons.map_outlined, Colors.red,
+                    () => Navigator.push(context, MaterialPageRoute(builder: (_) => const HeatmapScreen()))),
+                _buildQuickActionCard(context, 'AI\nInsights', Icons.psychology, Colors.purple,
+                    () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AiInsightsScreen()))),
+                _buildQuickActionCard(context, 'Feedback\nHistory', Icons.history, Colors.blue,
+                    () => Navigator.push(context, MaterialPageRoute(builder: (_) => const FeedbackHistoryScreen()))),
+                _buildQuickActionCard(context, 'Push\nAlerts', Icons.notifications_outlined, Colors.teal,
+                    () => Navigator.push(context, MaterialPageRoute(builder: (_) => const NotificationScreen()))),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -614,25 +692,35 @@ class NgoDashboard extends StatelessWidget {
       children: top3Areas
           .map(
             (e) => Expanded(
-              child: Card(
-                color: Colors.red.shade50,
-                elevation: 2,
+              child: ClayContainer(
+                color: baseColor,
+                borderRadius: 14,
+                depth: 12,
                 child: Padding(
-                  padding: const EdgeInsets.all(12.0),
+                  padding: const EdgeInsets.symmetric(vertical: 16.0, horizontal: 8.0),
                   child: Column(
                     children: [
+                      Icon(Icons.location_city, color: Colors.red.shade400, size: 24),
+                      const SizedBox(height: 8),
                       Text(
                         e.key,
                         style: const TextStyle(
                           fontWeight: FontWeight.bold,
-                          fontSize: 16,
+                          fontSize: 14,
                         ),
                         textAlign: TextAlign.center,
                       ),
-                      const SizedBox(height: 4),
-                      Text(
-                        '${e.value} affected',
-                        style: TextStyle(color: Colors.red.shade800),
+                      const SizedBox(height: 6),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: Colors.red.shade50,
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: Text(
+                          '${e.value} affected',
+                          style: TextStyle(color: Colors.red.shade800, fontSize: 11, fontWeight: FontWeight.bold),
+                        ),
                       ),
                     ],
                   ),
@@ -667,10 +755,18 @@ class NgoDashboard extends StatelessWidget {
               const Divider(height: 1, color: Colors.black12),
           itemBuilder: (context, index) {
             return ListTile(
-              title: Text(sortedAreas[index].key),
-              trailing: Text(
-                '${sortedAreas[index].value} affected',
-                style: const TextStyle(fontWeight: FontWeight.bold),
+              leading: const Icon(Icons.location_on, color: Colors.deepPurple),
+              title: Text(sortedAreas[index].key, style: const TextStyle(fontWeight: FontWeight.w600)),
+              trailing: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                decoration: BoxDecoration(
+                  color: Colors.deepPurple.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Text(
+                  '${sortedAreas[index].value} affected',
+                  style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.deepPurple, fontSize: 12),
+                ),
               ),
             );
           },
@@ -928,7 +1024,7 @@ class NgoDashboard extends StatelessWidget {
                                 children: [
                                   Text(camp.campName,
                                       style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
-                                  Text('${camp.campType}  •  📍 ${camp.area}',
+                                  Text('${camp.campType}  •  📍 ${camp.location.isNotEmpty ? camp.location : camp.area}',
                                       style: const TextStyle(fontSize: 12, color: Colors.grey)),
                                   Text(
                                     '📅 ${camp.scheduledDate.day}/${camp.scheduledDate.month}/${camp.scheduledDate.year}  •  👥 ${camp.volunteersRequired} volunteers needed',

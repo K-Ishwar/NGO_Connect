@@ -7,6 +7,7 @@ class CampModel {
   final String campName;
   final String area;
   final String campType;         // 'Medical Camp' | 'Food Distribution' | etc.
+  final String location;         // Specific address/venue
   final DateTime scheduledDate;
   final int volunteersRequired;
   final int targetBeneficiaries;
@@ -23,6 +24,7 @@ class CampModel {
     required this.campName,
     required this.area,
     required this.campType,
+    this.location = '',
     required this.scheduledDate,
     required this.volunteersRequired,
     required this.targetBeneficiaries,
@@ -39,6 +41,7 @@ class CampModel {
     'camp_name': campName,
     'area': area,
     'camp_type': campType,
+    'location': location,
     'scheduled_date': Timestamp.fromDate(scheduledDate),
     'volunteers_required': volunteersRequired,
     'target_beneficiaries': targetBeneficiaries,
@@ -59,6 +62,7 @@ class CampModel {
       campName: map['camp_name'] ?? '',
       area: map['area'] ?? '',
       campType: map['camp_type'] ?? '',
+      location: map['location'] ?? '',
       scheduledDate: scheduledTs is Timestamp ? scheduledTs.toDate() : DateTime.now(),
       volunteersRequired: (map['volunteers_required'] as num?)?.toInt() ?? 1,
       targetBeneficiaries: (map['target_beneficiaries'] as num?)?.toInt() ?? 0,
