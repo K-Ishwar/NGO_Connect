@@ -115,8 +115,10 @@ class _CommunityHubScreenState extends State<CommunityHubScreen> {
                 (u) => RadioListTile(
                   title: Text(u),
                   value: u,
+                  // ignore: deprecated_member_use
                   groupValue: _filterUrgency,
                   activeColor: const Color(0xFF8A2387),
+                  // ignore: deprecated_member_use
                   onChanged: (v) {
                     setState(() => _filterUrgency = v!);
                     Navigator.pop(context);
@@ -139,8 +141,10 @@ class _CommunityHubScreenState extends State<CommunityHubScreen> {
                         (p) => RadioListTile(
                           title: Text(p),
                           value: p,
+                          // ignore: deprecated_member_use
                           groupValue: _filterProblem,
                           activeColor: const Color(0xFF8A2387),
+                          // ignore: deprecated_member_use
                           onChanged: (v) {
                             setState(() => _filterProblem = v!);
                             Navigator.pop(context);
@@ -211,26 +215,29 @@ class _CommunityHubScreenState extends State<CommunityHubScreen> {
                     ),
                   ),
                   const SizedBox(width: 10),
-                  const Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text(
-                        'Community Hub',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 16,
-                          letterSpacing: 0.5,
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: const [
+                        Text(
+                          'Community Hub',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16,
+                            letterSpacing: 0.5,
+                          ),
                         ),
-                      ),
-                      Text(
-                        'All NGO surveys — Open data sharing',
-                        style: TextStyle(color: Colors.white70, fontSize: 10),
-                      ),
-                    ],
+                        Text(
+                          'All NGO surveys — Open data sharing',
+                          style: TextStyle(color: Colors.white70, fontSize: 10),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ],
+                    ),
                   ),
-                  const Spacer(),
+
                   IconButton(
                     icon: const Icon(
                       Icons.filter_list,
@@ -308,7 +315,7 @@ class _CommunityHubScreenState extends State<CommunityHubScreen> {
             // Aggregate stats
             final totalPeople = allSurveys.fold<int>(
               0,
-              (sum, s) => sum + s.peopleCount,
+              (acc, s) => acc + s.peopleCount,
             );
             final highCount = allSurveys
                 .where((s) => s.urgency == 'High')
@@ -636,12 +643,16 @@ class _SurveyHubCard extends StatelessWidget {
                           color: Color(0xFF8A2387),
                         ),
                         const SizedBox(width: 4),
-                        Text(
-                          survey.area,
-                          style: const TextStyle(
-                            color: Colors.deepPurple,
-                            fontSize: 13,
-                            fontWeight: FontWeight.w600,
+                        Expanded(
+                          child: Text(
+                            survey.area,
+                            style: const TextStyle(
+                              color: Colors.deepPurple,
+                              fontSize: 13,
+                              fontWeight: FontWeight.w600,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
                           ),
                         ),
                         const SizedBox(width: 10),

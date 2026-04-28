@@ -1,9 +1,38 @@
+import 'dart:math';
 import 'package:google_generative_ai/google_generative_ai.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import '../models/survey_model.dart';
 import '../models/survey_response_model.dart';
 
 class AiPredictionService {
-  static const String _apiKey = 'AIzaSyCt7iHZRNAWljryV6B8YBciJpQh4NoW-Ng';
+  static String get _apiKey => dotenv.env['GEMINI_API_KEY'] ?? '';
+
+  Future<String> _callGeminiWithRetry(String prompt, {int maxRetries = 3}) async {
+    final model = GenerativeModel(model: 'gemini-2.5-flash', apiKey: _apiKey);
+    int attempt = 0;
+    
+    while (attempt < maxRetries) {
+      try {
+        final response = await model.generateContent([Content.text(prompt)]);
+        return response.text ?? 'No response';
+      } catch (e) {
+        attempt++;
+        final errorStr = e.toString();
+        
+        if (errorStr.contains('503') || errorStr.contains('UNAVAILABLE') || errorStr.contains('quota')) {
+          if (attempt >= maxRetries) {
+            if (errorStr.contains('quota')) return 'Daily limit reached. Please try again tomorrow.';
+            return 'Google AI is currently experiencing high demand. Please try again in a moment.';
+          }
+          final waitSeconds = pow(2, attempt).toInt();
+          await Future.delayed(Duration(seconds: waitSeconds));
+        } else {
+          return 'Error: $errorStr';
+        }
+      }
+    }
+    return 'Service unavailable after $maxRetries attempts.';
+  }
 
   /// General weekly intelligence report for NGO dashboard
   Future<String> generatePrediction(List<SurveyModel> surveys) async {
@@ -42,11 +71,13 @@ Keep each section to 2-4 bullet points. Be direct and specific to the data provi
 ''';
 
     try {
-      final model = GenerativeModel(model: 'gemini-2.0-flash', apiKey: _apiKey);
-      final response = await model.generateContent([Content.text(prompt)]);
-      return response.text ?? 'AI analysis could not be generated. Please try again.';
+      final text = await _callGeminiWithRetry(prompt);
+      if (text.startsWith('Error:') || text.startsWith('Daily') || text.startsWith('Google AI') || text.startsWith('Service')) {
+        return text;
+      }
+      return text;
     } catch (e) {
-      return 'Error connecting to AI service: $e\n\nPlease check your internet connection.';
+      return 'Error connecting to AI service. Please try again.';
     }
   }
 
@@ -119,9 +150,10 @@ Respond ONLY in this EXACT JSON format (no markdown, no extra text):
 ''';
 
     try {
-      final model = GenerativeModel(model: 'gemini-2.0-flash', apiKey: _apiKey);
-      final response = await model.generateContent([Content.text(prompt)]);
-      final text = response.text ?? '';
+      final text = await _callGeminiWithRetry(prompt);
+      if (text.startsWith('Error:') || text.startsWith('Daily') || text.startsWith('Google AI') || text.startsWith('Service')) {
+        return CampRecommendation.empty(text);
+      }
       return CampRecommendation.fromJson(text, survey.area);
     } catch (e) {
       return CampRecommendation.empty('Error generating recommendation: $e');

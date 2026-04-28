@@ -176,27 +176,48 @@ class _NgoDashboardState extends State<NgoDashboard> {
         child: Center(
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 1400),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _buildQuickActionsVerticalSidebar(context),
-                Expanded(
-                  child: SingleChildScrollView(
-                    padding: const EdgeInsets.all(16.0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        _buildVolunteerAndTasksRow(),
-                        const SizedBox(height: 24),
-                        _buildSurveysAnalytics(),
-                        const SizedBox(height: 16),
-                        _buildCampsSection(),
-                      ],
-                    ),
+            child: MediaQuery.of(context).size.width < 600
+                ? Column(
+                    children: [
+                      _buildQuickActionsHorizontalBar(context),
+                      Expanded(
+                        child: SingleChildScrollView(
+                          padding: const EdgeInsets.all(16.0),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              _buildVolunteerAndTasksRow(),
+                              const SizedBox(height: 24),
+                              _buildSurveysAnalytics(),
+                              const SizedBox(height: 16),
+                              _buildCampsSection(),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
+                  )
+                : Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _buildQuickActionsVerticalSidebar(context),
+                      Expanded(
+                        child: SingleChildScrollView(
+                          padding: const EdgeInsets.all(16.0),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              _buildVolunteerAndTasksRow(),
+                              const SizedBox(height: 24),
+                              _buildSurveysAnalytics(),
+                              const SizedBox(height: 16),
+                              _buildCampsSection(),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
-                ),
-              ],
-            ),
           ),
         ),
       ),
@@ -242,6 +263,40 @@ class _NgoDashboardState extends State<NgoDashboard> {
   }
 
 
+
+  Widget _buildQuickActionsHorizontalBar(BuildContext context) {
+    final iconSize = 20.0;
+    final fontSize = 10.0;
+
+    return Container(
+      height: 80,
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      color: Colors.white,
+      child: ListView(
+        scrollDirection: Axis.horizontal,
+        padding: const EdgeInsets.symmetric(horizontal: 16),
+        children: [
+          _buildCompactActionCard(context, 'Hub', Icons.public, const Color(0xFF8A2387), iconSize, fontSize,
+              () => Navigator.push(context, MaterialPageRoute(builder: (_) => const CommunityHubScreen())), isHorizontal: true),
+          const SizedBox(width: 12),
+          _buildCompactActionCard(context, 'Register', Icons.person_add_alt_1, Colors.deepOrange, iconSize, fontSize,
+              () => Navigator.push(context, MaterialPageRoute(builder: (_) => const RegisterVolunteerScreen())), isHorizontal: true),
+          const SizedBox(width: 12),
+          _buildCompactActionCard(context, 'Heatmap', Icons.map_outlined, Colors.red, iconSize, fontSize,
+              () => Navigator.push(context, MaterialPageRoute(builder: (_) => const HeatmapScreen())), isHorizontal: true),
+          const SizedBox(width: 12),
+          _buildCompactActionCard(context, 'AI', Icons.psychology, Colors.purple, iconSize, fontSize,
+              () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AiInsightsScreen())), isHorizontal: true),
+          const SizedBox(width: 12),
+          _buildCompactActionCard(context, 'History', Icons.history, Colors.blue, iconSize, fontSize,
+              () => Navigator.push(context, MaterialPageRoute(builder: (_) => const FeedbackHistoryScreen())), isHorizontal: true),
+          const SizedBox(width: 12),
+          _buildCompactActionCard(context, 'Alerts', Icons.notifications_outlined, Colors.teal, iconSize, fontSize,
+              () => Navigator.push(context, MaterialPageRoute(builder: (_) => const NotificationScreen())), isHorizontal: true),
+        ],
+      ),
+    );
+  }
 
   Widget _buildQuickActionsVerticalSidebar(BuildContext context) {
     final screenW = MediaQuery.of(context).size.width;
@@ -292,9 +347,10 @@ class _NgoDashboardState extends State<NgoDashboard> {
   }
 
   Widget _buildCompactActionCard(BuildContext context, String title, IconData icon, Color color,
-      double iconSize, double fontSize, VoidCallback onTap) {
+      double iconSize, double fontSize, VoidCallback onTap, {bool isHorizontal = false}) {
     return Container(
-      margin: const EdgeInsets.only(bottom: 10),
+      width: isHorizontal ? 70 : null,
+      margin: EdgeInsets.only(bottom: isHorizontal ? 0 : 10),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(14),
@@ -799,10 +855,14 @@ class _NgoDashboardState extends State<NgoDashboard> {
         const MapEntry('North End (Demo)', 40),
       ];
     }
-    return Row(
-      children: top3Areas
-          .map(
-            (e) => Expanded(
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      child: Row(
+        children: top3Areas
+            .map(
+              (e) => Container(
+                width: 140,
+                margin: const EdgeInsets.only(right: 12),
               child: ClayContainer(
                 color: baseColor,
                 borderRadius: 14,
@@ -840,6 +900,7 @@ class _NgoDashboardState extends State<NgoDashboard> {
             ),
           )
           .toList(),
+      ),
     );
   }
 
@@ -862,7 +923,7 @@ class _NgoDashboardState extends State<NgoDashboard> {
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
           itemCount: sortedAreas.length,
-          separatorBuilder: (_, __) =>
+          separatorBuilder: (_, _) =>
               const Divider(height: 1, color: Colors.black12),
           itemBuilder: (context, index) {
             return ListTile(
@@ -928,7 +989,7 @@ class _NgoDashboardState extends State<NgoDashboard> {
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
           itemCount: mySurveys.length,
-          separatorBuilder: (_, __) => const Divider(height: 1, color: Colors.black12),
+          separatorBuilder: (_, _) => const Divider(height: 1, color: Colors.black12),
           itemBuilder: (context, index) {
             final doc = mySurveys[index];
             final data = doc.data() as Map<String, dynamic>;
@@ -986,7 +1047,7 @@ class _NgoDashboardState extends State<NgoDashboard> {
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
           itemCount: displayEvents.length,
-          separatorBuilder: (_, __) =>
+          separatorBuilder: (_, _) =>
               const Divider(height: 1, color: Colors.black12),
           itemBuilder: (context, index) {
             final event = displayEvents[index];

@@ -237,8 +237,9 @@ class _RegisterVolunteerScreenState extends State<RegisterVolunteerScreen> {
                   'Download the app and login to get started. Please change your password after first login.',
                 );
                 final url = Uri.parse('https://wa.me/$clean?text=$msg');
-                if (await canLaunchUrl(url))
+                if (await canLaunchUrl(url)) {
                   await launchUrl(url, mode: LaunchMode.externalApplication);
+                }
               },
             ),
           ElevatedButton(
@@ -472,8 +473,9 @@ class _RegisterVolunteerScreenState extends State<RegisterVolunteerScreen> {
                                 keyboardType: TextInputType.emailAddress,
                                 validator: (v) {
                                   if (v == null || v.isEmpty) return 'Required';
-                                  if (!v.contains('@'))
+                                  if (!v.contains('@')) {
                                     return 'Enter a valid email';
+                                  }
                                   return null;
                                 },
                               ),
@@ -538,10 +540,11 @@ class _RegisterVolunteerScreenState extends State<RegisterVolunteerScreen> {
                                     checkmarkColor: Colors.white,
                                     onSelected: (val) {
                                       setState(() {
-                                        if (val)
+                                        if (val) {
                                           _selectedSkills.add(skill);
-                                        else
+                                        } else {
                                           _selectedSkills.remove(skill);
+                                        }
                                       });
                                     },
                                   );
@@ -586,7 +589,7 @@ class _RegisterVolunteerScreenState extends State<RegisterVolunteerScreen> {
                               ),
                               const SizedBox(height: 16),
                               DropdownButtonFormField<String>(
-                                value: _availability,
+                                initialValue: _availability,
                                 decoration: InputDecoration(
                                   labelText: 'Availability',
                                   prefixIcon: const Icon(

@@ -249,8 +249,11 @@ class SurveyAnalyticsScreen extends StatelessWidget {
                               children: [
                                 const Icon(Icons.document_scanner, color: Color(0xFF8A2387)),
                                 const SizedBox(width: 8),
-                                const Text('Upload Old Paper Data (OCR Scanner)',
-                                    style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Color(0xFF8A2387))),
+                                Expanded(
+                                  child: const Text('Upload Old Paper Data (OCR Scanner)',
+                                      style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Color(0xFF8A2387)),
+                                      overflow: TextOverflow.ellipsis),
+                                ),
                               ],
                             ),
                           ),

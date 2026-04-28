@@ -176,7 +176,7 @@ class _HeatmapScreenState extends State<HeatmapScreen> with TickerProviderStateM
               // Animated pulsing outer halo
               AnimatedBuilder(
                 animation: _pulseController,
-                builder: (_, __) => CircleLayer(
+                builder: (_, _) => CircleLayer(
                   circles: _filteredMarkers.map((m) {
                     final base = _radiusForCount(m.survey.peopleCount);
                     final urgFactor = m.survey.urgency == 'High' ? 14.0 : m.survey.urgency == 'Medium' ? 9.0 : 5.0;

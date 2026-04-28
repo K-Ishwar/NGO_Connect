@@ -33,7 +33,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
     _locationController = TextEditingController(
       text: widget.userModel.location ?? '',
     );
-    _selectedAvailability = widget.userModel.availability ?? 'Part-time';
+    String rawAvail = widget.userModel.availability ?? 'Part-time';
+    if (rawAvail.toLowerCase() == 'full-time') {
+      _selectedAvailability = 'Full-time';
+    } else {
+      _selectedAvailability = 'Part-time';
+    }
   }
 
   @override

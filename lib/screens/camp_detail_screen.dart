@@ -80,11 +80,13 @@ class _CampDetailScreenState extends State<CampDetailScreen> {
                   final data = doc.data();
                   final name = data['name'] ?? 'Unknown';
                   final location = data['location'] ?? '';
-                  final skills = List<String>.from(data['skills'] ?? []).join(', ');
+                  final skills = (data['skills'] is String) ? data['skills'] as String : List<String>.from(data['skills'] ?? []).join(', ');
                   return RadioListTile<String>(
                     dense: true,
                     value: doc.id,
+                    // ignore: deprecated_member_use
                     groupValue: selectedId,
+                    // ignore: deprecated_member_use
                     onChanged: (v) => setS(() => selectedId = v),
                     title: Text(name, style: const TextStyle(fontWeight: FontWeight.bold)),
                     subtitle: Text('📍 $location\n🎯 $skills', style: const TextStyle(fontSize: 11)),
@@ -390,7 +392,7 @@ class _CampDetailScreenState extends State<CampDetailScreen> {
                             name = data['name'] ?? 'Volunteer';
                             phone = data['phone_number'] ?? '';
                             location = data['location'] ?? '';
-                            skills = List<String>.from(data['skills'] ?? []).join(', ');
+                            skills = (data['skills'] is String) ? data['skills'] as String : List<String>.from(data['skills'] ?? []).join(', ');
                           }
 
                           return ClayContainer(

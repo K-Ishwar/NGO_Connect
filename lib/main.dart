@@ -11,7 +11,7 @@ import 'models/user_model.dart';
 import 'screens/login_screen.dart';
 import 'screens/ngo_dashboard.dart';
 import 'screens/volunteer_dashboard.dart';
-
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 @pragma('vm:entry-point')
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   // If you're going to use other Firebase services in the background, such as Firestore,
@@ -21,6 +21,7 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await dotenv.load(fileName: ".env");
   try {
     await Firebase.initializeApp(
       options: DefaultFirebaseOptions.currentPlatform,

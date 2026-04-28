@@ -162,7 +162,7 @@ class FeedbackHistoryScreen extends StatelessWidget {
                                 const SizedBox(height: 8),
                                 Row(
                                   children: [
-                                    _chip(Icons.people, '${peopleHelped} helped', Colors.green),
+                                    _chip(Icons.people, '$peopleHelped helped', Colors.green),
                                     const SizedBox(width: 8),
                                     if (remainingNeed.isNotEmpty && remainingNeed != 'None')
                                       _chip(Icons.warning_amber, 'Gap: $remainingNeed', Colors.orange),

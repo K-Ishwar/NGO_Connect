@@ -56,8 +56,7 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
           }
         });
       }
-    } catch (e) {
-      print('Error loading survey custom fields: $e');
+    } catch (e) { debugPrint('Error loading survey custom fields: $e');
     }
   }
 

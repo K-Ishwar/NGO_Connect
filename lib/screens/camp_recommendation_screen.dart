@@ -368,7 +368,7 @@ class _CampRecommendationScreenState extends State<CampRecommendationScreen> {
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
               child: DropdownButtonFormField<String>(
-                value: _campType,
+                initialValue: _campType,
                 decoration: const InputDecoration(
                   border: InputBorder.none,
                   labelText: 'Camp Type',
@@ -572,7 +572,7 @@ class _ShimmerBlockState extends State<_ShimmerBlock> with SingleTickerProviderS
   Widget build(BuildContext context) {
     return AnimatedBuilder(
       animation: _anim,
-      builder: (_, _unused) => Opacity(
+      builder: (_, unused) => Opacity(
         opacity: 0.3 + (_anim.value * 0.7),
         child: Container(
           width: double.infinity, height: widget.height,

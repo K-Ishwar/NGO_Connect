@@ -226,7 +226,7 @@ class _AddSurveyScreenState extends State<AddSurveyScreen> {
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
           child: DropdownButtonFormField<String>(
-            value: value,
+            initialValue: value,
             decoration: InputDecoration(border: InputBorder.none, labelText: label),
             items: items.map((t) => DropdownMenuItem(value: t, child: Text(t))).toList(),
             onChanged: (v) => onChanged(v!),

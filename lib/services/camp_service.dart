@@ -70,14 +70,19 @@ class CampService {
         if (assignedIds.contains(uid)) continue;
 
         final volArea = (data['location'] ?? '').toString().toLowerCase();
-        final volSkills = List<String>.from(data['skills'] ?? []).map((s) => s.toLowerCase()).toList();
+        final rawSkills = data['skills'];
+        final List<String> parsedSkills = rawSkills is String ? rawSkills.split(',').map((s) => s.trim()).toList() : List<String>.from(rawSkills ?? []);
+        final volSkills = parsedSkills.map((s) => s.toLowerCase()).toList();
         final volAvailability = (data['availability'] ?? 'part-time').toString().toLowerCase();
         final volExperience = (data['experience_years'] as num?)?.toInt() ?? 0;
 
         // Location score (30%)
         int locationScore = 0;
-        if (campArea.contains(volArea) || volArea.contains(campArea)) locationScore = 30;
-        else if (_shareWords(campArea, volArea)) locationScore = 15;
+        if (campArea.contains(volArea) || volArea.contains(campArea)) {
+          locationScore = 30;
+        } else if (_shareWords(campArea, volArea)) {
+          locationScore = 15;
+        }
 
         // Skills score (35%)
         int skillScore = 0;
@@ -119,7 +124,7 @@ class CampService {
         final assignment = CampAssignmentModel(
           campId: camp.id!,
           volunteerId: uid,
-          role: _inferRole(camp.skillsNeeded, List<String>.from((v['data'] as Map)['skills'] ?? [])),
+          role: _inferRole(camp.skillsNeeded, (v['data'] as Map)['skills'] is String ? ((v['data'] as Map)['skills'] as String).split(',').map((s) => s.trim()).toList() : List<String>.from((v['data'] as Map)['skills'] ?? [])),
           status: 'assigned',
           matchScore: score,
         );

@@ -96,18 +96,22 @@ class _VolunteerDashboardState extends State<VolunteerDashboard> {
                     child: const Icon(Icons.volunteer_activism, color: Colors.white, size: 22),
                   ),
                   const SizedBox(width: 10),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      const Text('Volunteer Dashboard',
-                          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
-                      if (_userModel != null)
-                        Text('Hello, ${_userModel!.name.split(' ').first}!',
-                            style: const TextStyle(color: Colors.white70, fontSize: 10)),
-                    ],
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Text('Volunteer Dashboard',
+                            style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16),
+                            overflow: TextOverflow.ellipsis),
+                        if (_userModel != null)
+                          Text('Hello, ${_userModel!.name.split(' ').first}!',
+                              style: const TextStyle(color: Colors.white70, fontSize: 10),
+                              overflow: TextOverflow.ellipsis),
+                      ],
+                    ),
                   ),
-                  const Spacer(),
+
                   IconButton(
                     icon: const Icon(Icons.notifications_outlined, color: Colors.white),
                     onPressed: () => Navigator.push(
@@ -271,13 +275,10 @@ class _VolunteerDashboardState extends State<VolunteerDashboard> {
                 : camp.status == 'completed' ? Colors.blue : Colors.orange;
             return Padding(
               padding: const EdgeInsets.only(bottom: 10),
-              child: GestureDetector(
-                onTap: () => Navigator.push(context,
-                    MaterialPageRoute(builder: (_) => CampDetailScreen(camp: camp))),
-                child: ClayContainer(
-                  color: baseColor, borderRadius: 14, depth: 18,
-                  child: Padding(
-                    padding: const EdgeInsets.all(14),
+              child: ClayContainer(
+                color: baseColor, borderRadius: 14, depth: 18,
+                child: Padding(
+                  padding: const EdgeInsets.all(14),
                     child: Row(
                       children: [
                         Container(
@@ -293,9 +294,12 @@ class _VolunteerDashboardState extends State<VolunteerDashboard> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text(camp.campName, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+                              Text(camp.campName, 
+                                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                                  maxLines: 2, overflow: TextOverflow.ellipsis),
                               Text('📍 ${camp.location.isNotEmpty ? camp.location : camp.area}',
-                                  style: const TextStyle(fontSize: 12, color: Colors.grey)),
+                                  style: const TextStyle(fontSize: 12, color: Colors.grey),
+                                  maxLines: 1, overflow: TextOverflow.ellipsis),
                               Text('📅 ${camp.scheduledDate.day}/${camp.scheduledDate.month}/${camp.scheduledDate.year}',
                                   style: const TextStyle(fontSize: 11, color: Colors.grey)),
                             ],
@@ -315,7 +319,6 @@ class _VolunteerDashboardState extends State<VolunteerDashboard> {
                     ),
                   ),
                 ),
-              ),
             );
           }).toList(),
         );
@@ -330,8 +333,9 @@ class _VolunteerDashboardState extends State<VolunteerDashboard> {
           .where('volunteer_id', isEqualTo: currentUser!.uid)
           .snapshots(),
       builder: (context, snapshot) {
-        if (!snapshot.hasData)
+        if (!snapshot.hasData) {
           return const Center(child: CircularProgressIndicator());
+        }
 
         final assignedTasks = snapshot.data!.docs;
         if (assignedTasks.isEmpty) {
@@ -461,8 +465,9 @@ class _VolunteerDashboardState extends State<VolunteerDashboard> {
     return StreamBuilder<QuerySnapshot>(
       stream: FirebaseFirestore.instance.collection('surveys').snapshots(),
       builder: (context, surveySnapshot) {
-        if (!surveySnapshot.hasData)
+        if (!surveySnapshot.hasData) {
           return const Center(child: CircularProgressIndicator());
+        }
         final surveys = surveySnapshot.data!.docs;
         if (surveys.isEmpty) {
           return ListView.builder(
@@ -510,8 +515,9 @@ class _VolunteerDashboardState extends State<VolunteerDashboard> {
               .where('volunteer_id', isEqualTo: currentUser!.uid)
               .snapshots(),
           builder: (context, taskSnapshot) {
-            if (!taskSnapshot.hasData)
+            if (!taskSnapshot.hasData) {
               return const Center(child: CircularProgressIndicator());
+            }
 
             final myTasks = taskSnapshot.data!.docs;
             final mySurveyIds = myTasks
@@ -581,14 +587,15 @@ class _VolunteerDashboardState extends State<VolunteerDashboard> {
                               depth: 20,
                               child: InkWell(
                                 onTap: () async {
+                                  final sm = ScaffoldMessenger.of(context);
                                   final success = await _taskService.acceptTask(
                                     surveyId: surveyId,
                                     volunteerId: currentUser!.uid,
                                   );
                                   if (success && mounted) {
-                                    ScaffoldMessenger.of(context).showSnackBar(
+                                    sm.showSnackBar(
                                       const SnackBar(
-                                        content: Text('Task Accepted!'),
+                                        content: Text('Task Accepted! Check your dashboard.'),
                                       ),
                                     );
                                   }

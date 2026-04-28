@@ -3,6 +3,8 @@ import 'package:clay_containers/clay_containers.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../models/survey_model.dart';
 import '../models/survey_response_model.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:google_mlkit_text_recognition/google_mlkit_text_recognition.dart';
 import '../services/survey_response_service.dart';
 import '../services/task_service.dart';
 
@@ -43,6 +45,7 @@ class _SurveyResponseScreenState extends State<SurveyResponseScreen> {
 
   bool _isLoading = false;
   bool _isSurveyDone = false;
+  bool _isScanning = false;
   int _responseCount = 0;
 
   final List<String> _genderOptions = [
@@ -87,6 +90,50 @@ class _SurveyResponseScreenState extends State<SurveyResponseScreen> {
       if (def.type == 'yesno') _yesNoValues[def.label] = 'Yes';
       if (def.type == 'select' && def.options.isNotEmpty) _selectValues[def.label] = def.options.first;
       if (def.type == 'scale') _scaleValues[def.label] = 3.0;
+    }
+  }
+
+  Future<void> _scanPaperDocument() async {
+    try {
+      setState(() => _isScanning = true);
+      final picker = ImagePicker();
+      final photo = await picker.pickImage(source: ImageSource.camera);
+      if (photo == null) {
+        setState(() => _isScanning = false);
+        return;
+      }
+      final inputImage = InputImage.fromFilePath(photo.path);
+      final recognizer = TextRecognizer(script: TextRecognitionScript.latin);
+      final recognized = await recognizer.processImage(inputImage);
+      await recognizer.close();
+
+      if (recognized.text.isNotEmpty && mounted) {
+        final text = recognized.text;
+        final lines = text.split('\n');
+        for (final line in lines) {
+          final lower = line.toLowerCase();
+          if (lower.contains('name')) {
+            final parts = line.split(RegExp(r'[:\-]'));
+            if (parts.length > 1) _nameController.text = parts.last.trim();
+          } else if (lower.contains('age')) {
+            _ageController.text = line.replaceAll(RegExp(r'[^0-9]'), '');
+          } else if (lower.contains('address')) {
+            final parts = line.split(RegExp(r'[:\-]'));
+            if (parts.length > 1) _addressController.text = parts.last.trim();
+          }
+        }
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Document scanned! Fields auto-filled.'), backgroundColor: Colors.green),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('OCR Error: $e'), backgroundColor: Colors.red),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isScanning = false);
     }
   }
 
@@ -247,6 +294,34 @@ class _SurveyResponseScreenState extends State<SurveyResponseScreen> {
                 ),
                 const SizedBox(height: 16),
 
+                // ── OCR Scanner Button ────────────────────────────
+                GestureDetector(
+                  onTap: _isScanning ? null : _scanPaperDocument,
+                  child: ClayContainer(
+                    color: baseColor,
+                    borderRadius: 14,
+                    depth: 20,
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          if (_isScanning)
+                            const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Color(0xFF8A2387)))
+                          else
+                            const Icon(Icons.document_scanner, color: Color(0xFF8A2387)),
+                          const SizedBox(width: 10),
+                          Text(
+                            _isScanning ? 'Scanning document...' : 'Auto-fill from Document (OCR)',
+                            style: const TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF8A2387), fontSize: 15),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 16),
+
                 // ── Respondent Info ───────────────────────────────
                 _sectionLabel('👤 Respondent Info (Optional)'),
                 Row(
@@ -265,7 +340,7 @@ class _SurveyResponseScreenState extends State<SurveyResponseScreen> {
                     child: Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
                       child: DropdownButtonFormField<String>(
-                        value: _selectedGender,
+                        initialValue: _selectedGender,
                         decoration: const InputDecoration(border: InputBorder.none, labelText: 'Gender'),
                         items: _genderOptions.map((g) => DropdownMenuItem(value: g, child: Text(g))).toList(),
                         onChanged: (v) => setState(() => _selectedGender = v!),
