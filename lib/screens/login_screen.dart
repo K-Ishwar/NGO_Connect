@@ -19,37 +19,64 @@ class _LoginScreenState extends State<LoginScreen> {
   final Color baseColor = const Color(0xFFF2F2F2);
 
   void _login() async {
+    if (_emailController.text.trim().isEmpty || _passwordController.text.trim().isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please enter email and password.'), backgroundColor: Colors.red),
+      );
+      return;
+    }
     setState(() => _isLoading = true);
-    final authService = AuthService();
-    UserModel? user = await authService.loginUser(
-      _emailController.text.trim(),
-      _passwordController.text.trim(),
-    );
-
-    setState(() => _isLoading = false);
-
-    _handleLoginResult(user);
+    try {
+      final authService = AuthService();
+      UserModel? user = await authService.loginUser(
+        _emailController.text.trim(),
+        _passwordController.text.trim(),
+      );
+      if (!mounted) return;
+      setState(() => _isLoading = false);
+      _handleLoginResult(user);
+    } catch (e) {
+      if (!mounted) return;
+      setState(() => _isLoading = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(e.toString().replaceAll('Exception: ', '')),
+          backgroundColor: Colors.red.shade700,
+          duration: const Duration(seconds: 4),
+        ),
+      );
+    }
   }
 
   void _googleLogin() async {
     setState(() => _isLoading = true);
-    final authService = AuthService();
-    UserModel? user = await authService.signInWithGoogle(_selectedRole);
-
-    setState(() => _isLoading = false);
-
-    _handleLoginResult(user);
+    try {
+      final authService = AuthService();
+      UserModel? user = await authService.signInWithGoogle(_selectedRole);
+      if (!mounted) return;
+      setState(() => _isLoading = false);
+      _handleLoginResult(user);
+    } catch (e) {
+      if (!mounted) return;
+      setState(() => _isLoading = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(e.toString().replaceAll('Exception: ', '')), backgroundColor: Colors.red),
+      );
+    }
   }
 
   void _handleLoginResult(UserModel? user) {
     if (user != null) {
       if (!mounted) return;
-      // Pop to the first route so AuthWrapper can dynamically load the correct dashboard
       Navigator.popUntil(context, (route) => route.isFirst);
     } else {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Login failed. Check credentials.')),
+        const SnackBar(
+          content: Text('Login failed. Make sure Email/Password sign-in is enabled in Firebase Console.'),
+          backgroundColor: Colors.red,
+          duration: Duration(seconds: 5),
+        ),
       );
     }
   }

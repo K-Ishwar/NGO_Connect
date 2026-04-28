@@ -28,7 +28,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     super.initState();
     _nameController = TextEditingController(text: widget.userModel.name);
     _skillsController = TextEditingController(
-      text: widget.userModel.skills ?? '',
+      text: widget.userModel.skills.join(', '),
     );
     _locationController = TextEditingController(
       text: widget.userModel.location ?? '',

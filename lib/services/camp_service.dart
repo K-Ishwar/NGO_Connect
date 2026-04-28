@@ -186,7 +186,7 @@ class CampService {
             .toList());
   }
 
-  /// Get all camp assignments for a specific volunteer
+  /// Get all camp assignments for a specific volunteer (returns CampAssignmentModel)
   Stream<List<CampAssignmentModel>> streamCampsForVolunteer(String volunteerId) {
     return _db
         .collection('camp_assignments')
@@ -195,6 +195,26 @@ class CampService {
         .map((snap) => snap.docs
             .map((d) => CampAssignmentModel.fromMap(d.data(), d.id))
             .toList());
+  }
+
+  /// Resolve camp assignments → full CampModel list for volunteer dashboard
+  Stream<List<CampModel>> streamCampModelsForVolunteer(String volunteerId) {
+    return _db
+        .collection('camp_assignments')
+        .where('volunteer_id', isEqualTo: volunteerId)
+        .snapshots()
+        .asyncMap((snap) async {
+      final List<CampModel> camps = [];
+      for (final doc in snap.docs) {
+        final campId = doc.data()['camp_id'] as String? ?? '';
+        if (campId.isEmpty) continue;
+        final campDoc = await _db.collection('camps').doc(campId).get();
+        if (campDoc.exists) {
+          camps.add(CampModel.fromMap(campDoc.data()!, campDoc.id));
+        }
+      }
+      return camps;
+    });
   }
 
   Future<bool> updateAssignmentStatus(String assignmentId, String status) async {

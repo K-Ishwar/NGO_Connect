@@ -3,7 +3,7 @@ class UserModel {
   final String role; // 'ngo' or 'volunteer'
   final String name;
   final String email;
-  final String? skills; // For volunteer
+  final List<String> skills; // For volunteer — list of skill tags
   final String? location; // For volunteer
   final String? availability; // For volunteer
   final String? fcmToken; // Firebase Cloud Messaging Token
@@ -14,7 +14,7 @@ class UserModel {
     required this.role,
     required this.name,
     required this.email,
-    this.skills,
+    this.skills = const [],
     this.location,
     this.availability,
     this.fcmToken,
@@ -22,12 +22,20 @@ class UserModel {
   });
 
   factory UserModel.fromMap(Map<String, dynamic> map, String documentId) {
+    // skills may be stored as List<String> (new wizard) or String (old self-register)
+    List<String> skillsList = [];
+    final rawSkills = map['skills'];
+    if (rawSkills is List) {
+      skillsList = List<String>.from(rawSkills);
+    } else if (rawSkills is String && rawSkills.isNotEmpty) {
+      skillsList = rawSkills.split(',').map((s) => s.trim()).where((s) => s.isNotEmpty).toList();
+    }
     return UserModel(
       id: documentId,
       role: map['role'] ?? '',
       name: map['name'] ?? '',
       email: map['email'] ?? '',
-      skills: map['skills'],
+      skills: skillsList,
       location: map['location'],
       availability: map['availability'],
       fcmToken: map['fcmToken'],
@@ -40,7 +48,7 @@ class UserModel {
       'role': role,
       'name': name,
       'email': email,
-      if (skills != null) 'skills': skills,
+      if (skills.isNotEmpty) 'skills': skills,
       if (location != null) 'location': location,
       if (availability != null) 'availability': availability,
       if (fcmToken != null) 'fcmToken': fcmToken,

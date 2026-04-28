@@ -18,10 +18,18 @@ import 'profile_screen.dart';
 import 'notification_screen.dart';
 import 'feedback_history_screen.dart';
 
-class NgoDashboard extends StatelessWidget {
+import 'package:fl_chart/fl_chart.dart';
+
+class NgoDashboard extends StatefulWidget {
   const NgoDashboard({super.key});
 
+  @override
+  State<NgoDashboard> createState() => _NgoDashboardState();
+}
+
+class _NgoDashboardState extends State<NgoDashboard> {
   final Color baseColor = const Color(0xFFF2F2F2);
+  String? _selectedProblemType;
 
   @override
   Widget build(BuildContext context) {
@@ -291,34 +299,100 @@ class NgoDashboard extends StatelessWidget {
   }
 
   Widget _buildQuickActionsVerticalSidebar(BuildContext context) {
+    final screenW = MediaQuery.of(context).size.width;
+    // Keep sidebar compact: 80px max on any phone
+    final sidebarW = screenW < 600 ? 82.0 : 120.0;
+    final iconSize = 20.0;
+    final fontSize = 9.0;
+
+    return SizedBox(
+      width: sidebarW,
+      child: Padding(
+        padding: EdgeInsets.only(left: screenW < 380 ? 8 : 12, top: 16, bottom: 16, right: 4),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Padding(
+              padding: const EdgeInsets.only(left: 2, bottom: 12),
+              child: Row(
+                children: [
+                  Container(width: 3, height: 18,
+                    decoration: BoxDecoration(
+                      gradient: const LinearGradient(colors: [Color(0xFF8A2387), Color(0xFFE94057)]),
+                      borderRadius: BorderRadius.circular(2),
+                    ),
+                  ),
+                  const SizedBox(width: 6),
+                  Text('⚡ Actions', style: TextStyle(
+                    fontSize: fontSize + 1, fontWeight: FontWeight.bold, color: Colors.deepPurple)),
+                ],
+              ),
+            ),
+            Expanded(
+              child: ListView(
+                padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 2),
+                children: [
+                  _buildCompactActionCard(context, 'Community\nHub', Icons.public, const Color(0xFF8A2387), iconSize, fontSize,
+                      () => Navigator.push(context, MaterialPageRoute(builder: (_) => const CommunityHubScreen()))),
+                  _buildCompactActionCard(context, 'Register\nVolunteer', Icons.person_add_alt_1, Colors.deepOrange, iconSize, fontSize,
+                      () => Navigator.push(context, MaterialPageRoute(builder: (_) => const RegisterVolunteerScreen()))),
+                  _buildCompactActionCard(context, 'Live\nHeatmap', Icons.map_outlined, Colors.red, iconSize, fontSize,
+                      () => Navigator.push(context, MaterialPageRoute(builder: (_) => const HeatmapScreen()))),
+                  _buildCompactActionCard(context, 'AI\nInsights', Icons.psychology, Colors.purple, iconSize, fontSize,
+                      () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AiInsightsScreen()))),
+                  _buildCompactActionCard(context, 'Feedback\nHistory', Icons.history, Colors.blue, iconSize, fontSize,
+                      () => Navigator.push(context, MaterialPageRoute(builder: (_) => const FeedbackHistoryScreen()))),
+                  _buildCompactActionCard(context, 'Push\nAlerts', Icons.notifications_outlined, Colors.teal, iconSize, fontSize,
+                      () => Navigator.push(context, MaterialPageRoute(builder: (_) => const NotificationScreen()))),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildCompactActionCard(BuildContext context, String title, IconData icon, Color color,
+      double iconSize, double fontSize, VoidCallback onTap) {
     return Container(
-      width: 160,
-      padding: const EdgeInsets.only(left: 16, top: 16, bottom: 16, right: 8),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          _buildSectionTitle('⚡ Actions'),
-          const SizedBox(height: 16),
-          Expanded(
-            child: ListView(
-              padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
+      margin: const EdgeInsets.only(bottom: 10),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: color.withOpacity(0.25), width: 1.2),
+        boxShadow: [BoxShadow(color: color.withOpacity(0.15), blurRadius: 8, offset: const Offset(0, 4))],
+      ),
+      child: Material(
+        color: Colors.transparent,
+        borderRadius: BorderRadius.circular(14),
+        clipBehavior: Clip.antiAlias,
+        child: InkWell(
+          onTap: onTap,
+          splashColor: color.withOpacity(0.15),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 4),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                _buildQuickActionCard(context, 'Community\nHub', Icons.public, const Color(0xFF8A2387),
-                    () => Navigator.push(context, MaterialPageRoute(builder: (_) => const CommunityHubScreen()))),
-                _buildQuickActionCard(context, 'Register\nVolunteer', Icons.person_add_alt_1, Colors.deepOrange,
-                    () => Navigator.push(context, MaterialPageRoute(builder: (_) => const RegisterVolunteerScreen()))),
-                _buildQuickActionCard(context, 'Live\nHeatmap', Icons.map_outlined, Colors.red,
-                    () => Navigator.push(context, MaterialPageRoute(builder: (_) => const HeatmapScreen()))),
-                _buildQuickActionCard(context, 'AI\nInsights', Icons.psychology, Colors.purple,
-                    () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AiInsightsScreen()))),
-                _buildQuickActionCard(context, 'Feedback\nHistory', Icons.history, Colors.blue,
-                    () => Navigator.push(context, MaterialPageRoute(builder: (_) => const FeedbackHistoryScreen()))),
-                _buildQuickActionCard(context, 'Push\nAlerts', Icons.notifications_outlined, Colors.teal,
-                    () => Navigator.push(context, MaterialPageRoute(builder: (_) => const NotificationScreen()))),
+                Container(
+                  padding: EdgeInsets.all(iconSize < 22 ? 8 : 10),
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(colors: [color.withOpacity(0.8), color]),
+                    shape: BoxShape.circle,
+                    boxShadow: [BoxShadow(color: color.withOpacity(0.3), blurRadius: 6, offset: const Offset(0, 3))],
+                  ),
+                  child: Icon(icon, color: Colors.white, size: iconSize),
+                ),
+                const SizedBox(height: 7),
+                Text(title,
+                  textAlign: TextAlign.center,
+                  style: TextStyle(fontSize: fontSize, fontWeight: FontWeight.bold, color: Colors.grey.shade800, height: 1.2),
+                ),
               ],
             ),
           ),
-        ],
+        ),
       ),
     );
   }
@@ -373,29 +447,32 @@ class NgoDashboard extends StatelessWidget {
                             colors: [Color(0xFF8A2387), Color(0xFFE94057)],
                           ),
                         ),
-                        padding: const EdgeInsets.symmetric(vertical: 18, horizontal: 24),
+                        padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 20),
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            const Icon(Icons.favorite, color: Colors.white, size: 32),
-                            const SizedBox(width: 12),
-                            Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  totalPeopleHelped.toString(),
-                                  style: const TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 40,
-                                    fontWeight: FontWeight.bold,
-                                    height: 1.0,
+                            const Icon(Icons.favorite, color: Colors.white, size: 28),
+                            const SizedBox(width: 10),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    totalPeopleHelped.toString(),
+                                    style: const TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 36,
+                                      fontWeight: FontWeight.bold,
+                                      height: 1.0,
+                                    ),
                                   ),
-                                ),
-                                const Text(
-                                  'Total People Helped Across All Surveys',
-                                  style: TextStyle(color: Colors.white70, fontSize: 12),
-                                ),
-                              ],
+                                  const Text(
+                                    'Total People Helped',
+                                    style: TextStyle(color: Colors.white70, fontSize: 11),
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ],
+                              ),
                             ),
                           ],
                         ),
@@ -457,6 +534,45 @@ class NgoDashboard extends StatelessWidget {
 
         final docs = snapshot.data!.docs;
 
+        if (docs.isEmpty) {
+          return Center(
+            child: Padding(
+              padding: const EdgeInsets.all(32.0),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const SizedBox(height: 40),
+                  Container(
+                    width: 140, height: 140,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      gradient: LinearGradient(colors: [const Color(0xFF8A2387).withOpacity(0.1), const Color(0xFFE94057).withOpacity(0.1)]),
+                    ),
+                    child: const Icon(Icons.analytics_outlined, size: 70, color: Color(0xFF8A2387)),
+                  ),
+                  const SizedBox(height: 24),
+                  const Text('No Surveys Yet', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.deepPurple)),
+                  const SizedBox(height: 12),
+                  const Text('Start by creating a new survey to collect data and get AI-powered recommendations.', textAlign: TextAlign.center, style: TextStyle(color: Colors.grey)),
+                  const SizedBox(height: 30),
+                  ElevatedButton.icon(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF8A2387),
+                      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                      elevation: 8,
+                      shadowColor: const Color(0xFF8A2387).withOpacity(0.5),
+                    ),
+                    onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AddSurveyScreen())),
+                    icon: const Icon(Icons.add, color: Colors.white),
+                    label: const Text('Create your first survey', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                  ),
+                ],
+              ),
+            ),
+          );
+        }
+
         // 5. Total Activities
         final totalActivities = docs.length;
 
@@ -496,6 +612,10 @@ class NgoDashboard extends StatelessWidget {
           return data['ngo_id'] == FirebaseAuth.instance.currentUser?.uid;
         }).toList();
 
+        if (_selectedProblemType != null) {
+          crossNgoEvents = crossNgoEvents.where((e) => e['problem_type'] == _selectedProblemType).toList();
+        }
+
         return Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
@@ -523,6 +643,11 @@ class NgoDashboard extends StatelessWidget {
             const SizedBox(height: 16),
 
             _buildSectionTitle('Problem Type Distribution'),
+            if (_selectedProblemType != null)
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                child: Text('Filtered by: $_selectedProblemType (Tap chart to clear)', style: const TextStyle(color: Color(0xFF8A2387), fontWeight: FontWeight.bold, fontSize: 12)),
+              ),
             _buildProblemTypeChart(problemTypeMap, totalActivities),
             const SizedBox(height: 16),
 
@@ -531,7 +656,11 @@ class NgoDashboard extends StatelessWidget {
             const SizedBox(height: 16),
 
             _buildSectionTitle('My Surveys (Tap for Analytics)'),
-            _buildMySurveysWidget(mySurveys),
+            _buildMySurveysWidget(
+              _selectedProblemType == null 
+                ? mySurveys 
+                : mySurveys.where((d) => (d.data() as Map<String, dynamic>)['problem_type'] == _selectedProblemType).toList()
+            ),
             const SizedBox(height: 16),
 
             _buildSectionTitle('Area-wise Needs (Total People)'),
@@ -607,12 +736,15 @@ class NgoDashboard extends StatelessWidget {
             ),
           ),
           const SizedBox(width: 8),
-          Text(
-            title,
-            style: const TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-              color: Colors.deepPurple,
+          Expanded(
+            child: Text(
+              title,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+                color: Colors.deepPurple,
+              ),
             ),
           ),
         ],
@@ -632,48 +764,89 @@ class NgoDashboard extends StatelessWidget {
       };
       totalActivities = 100;
     }
+    
+    final List<Color> colors = [
+      Colors.deepPurple, Colors.orange, Colors.redAccent, 
+      Colors.green, Colors.blueAccent, Colors.pink, Colors.teal
+    ];
+    int idx = 0;
+    
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 4.0),
       child: ClayContainer(
         color: baseColor,
         borderRadius: 15,
-        depth: -20, // Inner shadow effect
+        depth: 20,
         child: Padding(
           padding: const EdgeInsets.all(16.0),
-          child: Column(
-            children: problemTypeMap.entries.map((e) {
-              double ratio = totalActivities == 0
-                  ? 0
-                  : e.value / totalActivities;
-              return Padding(
-                padding: const EdgeInsets.symmetric(vertical: 4.0),
-                child: Row(
-                  children: [
-                    SizedBox(
-                      width: 80,
-                      child: Text(
-                        e.key,
-                        style: const TextStyle(fontWeight: FontWeight.w500),
+          child: SizedBox(
+            height: 220,
+            child: Row(
+              children: [
+                Expanded(
+                  flex: 2,
+                  child: PieChart(
+                    PieChartData(
+                      pieTouchData: PieTouchData(
+                        touchCallback: (FlTouchEvent event, pieTouchResponse) {
+                          if (!event.isInterestedForInteractions || pieTouchResponse == null || pieTouchResponse.touchedSection == null) {
+                            return;
+                          }
+                          final touchedIndex = pieTouchResponse.touchedSection!.touchedSectionIndex;
+                          if (touchedIndex >= 0 && touchedIndex < problemTypeMap.length) {
+                            final key = problemTypeMap.keys.elementAt(touchedIndex);
+                            setState(() {
+                              if (_selectedProblemType == key) {
+                                _selectedProblemType = null;
+                              } else {
+                                _selectedProblemType = key;
+                              }
+                            });
+                          }
+                        },
                       ),
+                      sectionsSpace: 2,
+                      centerSpaceRadius: 35,
+                      sections: problemTypeMap.entries.map((e) {
+                        final isTouched = _selectedProblemType == e.key;
+                        final radius = isTouched ? 50.0 : 40.0;
+                        final color = colors[(problemTypeMap.keys.toList().indexOf(e.key)) % colors.length];
+                        return PieChartSectionData(
+                          color: color,
+                          value: e.value.toDouble(),
+                          title: '${e.value}',
+                          radius: radius,
+                          titleStyle: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.white),
+                        );
+                      }).toList(),
                     ),
-                    Expanded(
-                      child: LinearProgressIndicator(
-                        value: ratio,
-                        minHeight: 12,
-                        backgroundColor: Colors.transparent,
-                        color: Colors.deepPurpleAccent,
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    Text(
-                      '${e.value}',
-                      style: const TextStyle(fontWeight: FontWeight.bold),
-                    ),
-                  ],
+                  ),
                 ),
-              );
-            }).toList(),
+                Expanded(
+                  flex: 1,
+                  child: SingleChildScrollView(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: problemTypeMap.entries.map((e) {
+                        final isTouched = _selectedProblemType == e.key;
+                        final color = colors[(problemTypeMap.keys.toList().indexOf(e.key)) % colors.length];
+                        return Padding(
+                          padding: const EdgeInsets.only(bottom: 6),
+                          child: Row(
+                            children: [
+                              Container(width: 12, height: 12, decoration: BoxDecoration(color: color, shape: BoxShape.circle)),
+                              const SizedBox(width: 6),
+                              Expanded(child: Text(e.key, style: TextStyle(fontSize: 11, fontWeight: isTouched ? FontWeight.bold : FontWeight.normal))),
+                            ],
+                          ),
+                        );
+                      }).toList(),
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),
@@ -777,9 +950,34 @@ class NgoDashboard extends StatelessWidget {
 
   Widget _buildMySurveysWidget(List<QueryDocumentSnapshot> mySurveys) {
     if (mySurveys.isEmpty) {
-      return const Padding(
-        padding: EdgeInsets.all(8.0),
-        child: Text('You have not created any surveys yet.'),
+      return Padding(
+        padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 4.0),
+        child: ClayContainer(
+          color: baseColor, borderRadius: 15, depth: 20,
+          child: Padding(
+            padding: const EdgeInsets.all(32),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(20),
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [const Color(0xFF8A2387).withOpacity(0.1), const Color(0xFFE94057).withOpacity(0.08)],
+                    ),
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(Icons.assignment_outlined, size: 48, color: Color(0xFF8A2387)),
+                ),
+                const SizedBox(height: 16),
+                const Text('No Surveys Yet', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.deepPurple)),
+                const SizedBox(height: 8),
+                const Text('Create your first survey to start collecting insights from your area.',
+                    textAlign: TextAlign.center, style: TextStyle(fontSize: 12, color: Colors.grey)),
+              ],
+            ),
+          ),
+        ),
       );
     }
     return Padding(
@@ -953,10 +1151,12 @@ class NgoDashboard extends StatelessWidget {
               ),
             ),
             const SizedBox(width: 8),
-            const Text('🏕️ Camps & Events',
-                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.deepPurple)),
-            const Spacer(),
-            const Text('From survey analysis', style: TextStyle(fontSize: 11, color: Colors.grey)),
+            const Expanded(
+              child: Text('🏕️ Camps & Events',
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.deepPurple)),
+            ),
+            const Text('AI-planned', style: TextStyle(fontSize: 10, color: Colors.grey)),
           ],
         ),
         const SizedBox(height: 12),
@@ -970,19 +1170,30 @@ class NgoDashboard extends StatelessWidget {
             final camps = snap.data ?? [];
             if (camps.isEmpty) {
               return ClayContainer(
-                color: baseColor, borderRadius: 14, depth: -10,
-                child: const Padding(
-                  padding: EdgeInsets.all(24),
-                  child: Center(
-                    child: Column(
-                      children: [
-                        Icon(Icons.event_busy, size: 40, color: Colors.grey),
-                        SizedBox(height: 8),
-                        Text('No camps created yet.\nOpen a survey → Analytics → Get AI Recommendation to create your first camp.',
-                            textAlign: TextAlign.center,
-                            style: TextStyle(color: Colors.grey, fontStyle: FontStyle.italic)),
-                      ],
-                    ),
+                color: baseColor, borderRadius: 16, depth: 20,
+                child: Padding(
+                  padding: const EdgeInsets.all(32),
+                  child: Column(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(20),
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            colors: [const Color(0xFF5F72BD).withOpacity(0.12), const Color(0xFF8A2387).withOpacity(0.08)],
+                          ),
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Icon(Icons.festival_outlined, size: 48, color: Color(0xFF5F72BD)),
+                      ),
+                      const SizedBox(height: 16),
+                      const Text('No Camps Created Yet', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.deepPurple)),
+                      const SizedBox(height: 8),
+                      const Text(
+                        'Go to a Survey → View Analytics → "Get AI Camp Recommendation" to plan your first event!',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(fontSize: 12, color: Colors.grey),
+                      ),
+                    ],
                   ),
                 ),
               );

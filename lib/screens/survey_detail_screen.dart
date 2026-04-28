@@ -57,21 +57,45 @@ class _SurveyDetailScreenState extends State<SurveyDetailScreen> {
       );
       return;
     }
-    // Strip non-digit characters
-    final cleanPhone = phone.replaceAll(RegExp(r'[^\d]'), '');
+
+    // Clean phone — keep only digits
+    String cleanPhone = phone.replaceAll(RegExp(r'[^\d]'), '');
+
+    // Add India country code if needed (10-digit numbers = India mobile)
+    if (cleanPhone.length == 10) {
+      cleanPhone = '91$cleanPhone';
+    } else if (cleanPhone.length == 11 && cleanPhone.startsWith('0')) {
+      cleanPhone = '91${cleanPhone.substring(1)}'; // Strip leading 0
+    }
+    // If already starts with 91 and is 12 digits, leave as-is
+
     final message = Uri.encodeComponent(
-      '🚨 URGENT TASK — ${widget.survey.problemType} reported in ${widget.survey.area}.\n'
+      '🚨 NGO Connect Task Alert — ${widget.survey.problemType} in ${widget.survey.area}.\n'
       '${widget.survey.peopleCount} people are affected. Urgency: ${widget.survey.urgency}.\n\n'
       'Please open NGO Connect to view and accept this task.',
     );
-    final whatsappUrl = 'https://wa.me/$cleanPhone?text=$message';
-    final uri = Uri.parse(whatsappUrl);
-    if (await canLaunchUrl(uri)) {
-      await launchUrl(uri, mode: LaunchMode.externalApplication);
+
+    // Try direct whatsapp:// scheme first (faster, opens WhatsApp directly)
+    final directUri = Uri.parse('whatsapp://send?phone=$cleanPhone&text=$message');
+    // Fallback: web link
+    final webUri = Uri.parse('https://wa.me/$cleanPhone?text=$message');
+
+    if (await canLaunchUrl(directUri)) {
+      await launchUrl(directUri, mode: LaunchMode.externalApplication);
+    } else if (await canLaunchUrl(webUri)) {
+      await launchUrl(webUri, mode: LaunchMode.externalApplication);
     } else {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Could not open WhatsApp.')),
+          SnackBar(
+            content: Text('WhatsApp not installed. Phone: +$cleanPhone'),
+            action: SnackBarAction(
+              label: 'Copy',
+              onPressed: () {
+                // Could copy to clipboard
+              },
+            ),
+          ),
         );
       }
     }
@@ -244,9 +268,19 @@ class _SurveyDetailScreenState extends State<SurveyDetailScreen> {
                         data['name'] ?? 'Volunteer',
                         style: const TextStyle(fontWeight: FontWeight.bold),
                       ),
-                      subtitle: Text(
-                        '${data['skills']}\nLoc: ${data['location']}',
-                      ),
+                      subtitle: Builder(builder: (ctx) {
+                          // Handle skills stored as List<String> or String
+                          final rawSkills = data['skills'];
+                          String skillsDisplay = '';
+                          if (rawSkills is List) {
+                            skillsDisplay = (rawSkills as List).join(', ');
+                          } else if (rawSkills is String) {
+                            skillsDisplay = rawSkills;
+                          }
+                          return Text(
+                            '${skillsDisplay.isEmpty ? "No skills listed" : skillsDisplay}\nLoc: ${data['location'] ?? "–"}',
+                          );
+                        }),
                       isThreeLine: true,
                       trailing: ClayContainer(
                         color: Colors.white,

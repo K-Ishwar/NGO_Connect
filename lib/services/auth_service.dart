@@ -31,10 +31,10 @@ class AuthService {
     required String password,
     required String role,
     required String name,
-    String? skills,
     String? location,
     String? availability,
     String? phoneNumber,
+    List<String> skills = const [],
   }) async {
     try {
       UserCredential userCredential = await _auth
@@ -61,8 +61,18 @@ class AuthService {
 
         return userModel;
       }
+    } on FirebaseAuthException catch (e) {
+      // Re-throw with readable message
+      final msg = e.code == 'email-already-in-use'
+          ? 'This email is already registered. Please login instead.'
+          : e.code == 'weak-password'
+          ? 'Password too weak. Use at least 6 characters.'
+          : e.code == 'invalid-email'
+          ? 'Invalid email address format.'
+          : 'Registration failed: ${e.message}';
+      throw Exception(msg);
     } catch (e) {
-      print(e.toString());
+      throw Exception('Registration failed: $e');
     }
     return null;
   }
@@ -78,8 +88,19 @@ class AuthService {
       if (user != null) {
         return await getUserDetails(user.uid);
       }
+    } on FirebaseAuthException catch (e) {
+      final msg = e.code == 'user-not-found'
+          ? 'No account found for this email. Please register first.'
+          : e.code == 'wrong-password' || e.code == 'invalid-credential'
+          ? 'Incorrect password. Please try again.'
+          : e.code == 'invalid-email'
+          ? 'Invalid email address.'
+          : e.code == 'too-many-requests'
+          ? 'Too many attempts. Try again later.'
+          : 'Login failed: ${e.message}';
+      throw Exception(msg);
     } catch (e) {
-      print(e.toString());
+      throw Exception('Login failed: $e');
     }
     return null;
   }

@@ -42,7 +42,7 @@ Keep each section to 2-4 bullet points. Be direct and specific to the data provi
 ''';
 
     try {
-      final model = GenerativeModel(model: 'gemini-1.5-flash', apiKey: _apiKey);
+      final model = GenerativeModel(model: 'gemini-2.0-flash', apiKey: _apiKey);
       final response = await model.generateContent([Content.text(prompt)]);
       return response.text ?? 'AI analysis could not be generated. Please try again.';
     } catch (e) {
@@ -119,7 +119,7 @@ Respond ONLY in this EXACT JSON format (no markdown, no extra text):
 ''';
 
     try {
-      final model = GenerativeModel(model: 'gemini-1.5-flash', apiKey: _apiKey);
+      final model = GenerativeModel(model: 'gemini-2.0-flash', apiKey: _apiKey);
       final response = await model.generateContent([Content.text(prompt)]);
       final text = response.text ?? '';
       return CampRecommendation.fromJson(text, survey.area);

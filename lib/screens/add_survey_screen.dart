@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:clay_containers/clay_containers.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:google_mlkit_text_recognition/google_mlkit_text_recognition.dart';
 import '../models/survey_model.dart';
 import '../services/survey_service.dart';
 
@@ -21,6 +23,7 @@ class _AddSurveyScreenState extends State<AddSurveyScreen> {
   String _selectedProblemType = 'Health';
   String _selectedUrgency = 'Medium';
   bool _isLoading = false;
+  bool _isScanning = false;
   final Color baseColor = const Color(0xFFF2F2F2);
 
   final List<String> _problemTypes = [
@@ -41,6 +44,65 @@ class _AddSurveyScreenState extends State<AddSurveyScreen> {
       _labelControllers.add(TextEditingController());
       _optionsControllers.add(TextEditingController());
     });
+  }
+
+  Future<void> _scanPaperSurvey() async {
+    try {
+      setState(() => _isScanning = true);
+      final picker = ImagePicker();
+      final XFile? photo = await picker.pickImage(
+        source: ImageSource.camera,
+        imageQuality: 85,
+        preferredCameraDevice: CameraDevice.rear,
+      );
+      if (photo == null) {
+        setState(() => _isScanning = false);
+        return;
+      }
+
+      final inputImage = InputImage.fromFilePath(photo.path);
+      final recognizer = TextRecognizer(script: TextRecognitionScript.latin);
+      final recognized = await recognizer.processImage(inputImage);
+      await recognizer.close();
+
+      if (recognized.text.isNotEmpty && mounted) {
+        // Auto-fill description with scanned text
+        _descriptionController.text = recognized.text.trim();
+        // Try to auto-detect keywords
+        final lower = recognized.text.toLowerCase();
+        if (lower.contains('health') || lower.contains('medical')) {
+          setState(() => _selectedProblemType = 'Health');
+        } else if (lower.contains('food') || lower.contains('hunger')) {
+          setState(() => _selectedProblemType = 'Food');
+        } else if (lower.contains('education') || lower.contains('school')) {
+          setState(() => _selectedProblemType = 'Education');
+        } else if (lower.contains('water') || lower.contains('sanitation')) {
+          setState(() => _selectedProblemType = 'Water & Sanitation');
+        } else if (lower.contains('shelter') || lower.contains('housing')) {
+          setState(() => _selectedProblemType = 'Shelter');
+        }
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Scanned ${recognized.blocks.length} text blocks. Description auto-filled!'),
+              backgroundColor: Colors.green,
+            ),
+          );
+        }
+      } else if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('No text detected. Try in better lighting.'), backgroundColor: Colors.orange),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Scanner error: $e'), backgroundColor: Colors.red),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isScanning = false);
+    }
   }
 
   void _removeField(int index) {
@@ -273,6 +335,45 @@ class _AddSurveyScreenState extends State<AddSurveyScreen> {
                   style: TextStyle(fontSize: 12, color: Colors.grey),
                 ),
                 const SizedBox(height: 20),
+
+                // ── OCR Scan Button ────────────────────────────────
+                GestureDetector(
+                  onTap: _isScanning ? null : _scanPaperSurvey,
+                  child: Container(
+                    margin: const EdgeInsets.only(bottom: 16),
+                    padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 20),
+                    decoration: BoxDecoration(
+                      gradient: _isScanning
+                          ? const LinearGradient(colors: [Colors.grey, Colors.grey])
+                          : const LinearGradient(
+                              colors: [Color(0xFF6A0DAD), Color(0xFF8A2387)],
+                              begin: Alignment.centerLeft,
+                              end: Alignment.centerRight,
+                            ),
+                      borderRadius: BorderRadius.circular(14),
+                      boxShadow: [
+                        BoxShadow(
+                          color: const Color(0xFF8A2387).withOpacity(0.3),
+                          blurRadius: 10, offset: const Offset(0, 4),
+                        )
+                      ],
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        _isScanning
+                            ? const SizedBox(width: 20, height: 20,
+                                child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+                            : const Icon(Icons.document_scanner, color: Colors.white, size: 22),
+                        const SizedBox(width: 10),
+                        Text(
+                          _isScanning ? 'Scanning...' : '📄 Scan Paper Survey (OCR)',
+                          style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
 
                 // ── Basic Details ─────────────────────────────────
                 _sectionLabel('📍 Survey Details'),

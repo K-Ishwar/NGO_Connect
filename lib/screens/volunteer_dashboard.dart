@@ -4,12 +4,15 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../services/auth_service.dart';
 import '../services/task_service.dart';
+import '../services/camp_service.dart';
 import 'feedback_screen.dart';
 import 'survey_response_screen.dart';
 import 'notification_screen.dart';
 import 'profile_screen.dart';
+import 'camp_detail_screen.dart';
 import '../models/user_model.dart';
 import '../models/survey_model.dart';
+import '../models/camp_model.dart';
 
 class VolunteerDashboard extends StatefulWidget {
   const VolunteerDashboard({super.key});
@@ -44,19 +47,23 @@ class _VolunteerDashboardState extends State<VolunteerDashboard> {
   int _calculateMatchScore(Map<String, dynamic> surveyData) {
     if (_userModel == null) return 0;
     int score = 0;
-    
+
+    // Location match (50%)
     final surveyArea = (surveyData['area'] ?? '').toString().toLowerCase();
     final userLocation = (_userModel!.location ?? '').toString().toLowerCase();
-    if (surveyArea.isNotEmpty && userLocation.isNotEmpty && (surveyArea.contains(userLocation) || userLocation.contains(surveyArea))) {
+    if (surveyArea.isNotEmpty && userLocation.isNotEmpty &&
+        (surveyArea.contains(userLocation) || userLocation.contains(surveyArea))) {
       score += 50;
     }
-    
+
+    // Skills match (50%) — now using List<String>
     final surveyProblem = (surveyData['problem_type'] ?? '').toString().toLowerCase();
-    final userSkills = (_userModel!.skills ?? '').toString().toLowerCase();
-    if (surveyProblem.isNotEmpty && userSkills.isNotEmpty && (userSkills.contains(surveyProblem) || surveyProblem.contains(userSkills))) {
+    final userSkills = _userModel!.skills.map((s) => s.toLowerCase()).toList();
+    if (surveyProblem.isNotEmpty && userSkills.isNotEmpty &&
+        userSkills.any((skill) => skill.contains(surveyProblem) || surveyProblem.contains(skill))) {
       score += 50;
     }
-    
+
     return score;
   }
 
@@ -64,43 +71,73 @@ class _VolunteerDashboardState extends State<VolunteerDashboard> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: baseColor,
-      appBar: AppBar(
-        title: const Text('Volunteer Dashboard'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.notifications),
-            onPressed: () => Navigator.push(
-              context,
-              MaterialPageRoute(builder: (_) => const NotificationScreen()),
+      appBar: PreferredSize(
+        preferredSize: const Size.fromHeight(70),
+        child: Container(
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              colors: [Color(0xFF5F72BD), Color(0xFF8A2387), Color(0xFFE94057)],
+              begin: Alignment.centerLeft,
+              end: Alignment.centerRight,
             ),
-            tooltip: 'Notifications',
+            boxShadow: [BoxShadow(color: Color(0x44000000), blurRadius: 12, offset: Offset(0, 4))],
           ),
-          IconButton(
-            icon: const Icon(Icons.person),
-            onPressed: () async {
-              final uid = FirebaseAuth.instance.currentUser?.uid;
-              if (uid != null) {
-                final user = await AuthService().getUserDetails(uid);
-                if (user != null && context.mounted) {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => ProfileScreen(userModel: user),
+          child: SafeArea(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+              child: Row(
+                children: [
+                  Container(
+                    width: 40, height: 40,
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.2),
+                      borderRadius: BorderRadius.circular(10),
                     ),
-                  );
-                }
-              }
-            },
-            tooltip: 'Profile',
+                    child: const Icon(Icons.volunteer_activism, color: Colors.white, size: 22),
+                  ),
+                  const SizedBox(width: 10),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Text('Volunteer Dashboard',
+                          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
+                      if (_userModel != null)
+                        Text('Hello, ${_userModel!.name.split(' ').first}!',
+                            style: const TextStyle(color: Colors.white70, fontSize: 10)),
+                    ],
+                  ),
+                  const Spacer(),
+                  IconButton(
+                    icon: const Icon(Icons.notifications_outlined, color: Colors.white),
+                    onPressed: () => Navigator.push(
+                      context, MaterialPageRoute(builder: (_) => const NotificationScreen())),
+                    tooltip: 'Notifications',
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.person_outline, color: Colors.white),
+                    onPressed: () async {
+                      final uid = FirebaseAuth.instance.currentUser?.uid;
+                      if (uid != null) {
+                        final user = await AuthService().getUserDetails(uid);
+                        if (user != null && context.mounted) {
+                          Navigator.push(context,
+                              MaterialPageRoute(builder: (_) => ProfileScreen(userModel: user)));
+                        }
+                      }
+                    },
+                    tooltip: 'Profile',
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.logout, color: Colors.white),
+                    onPressed: () async => await AuthService().logout(),
+                    tooltip: 'Logout',
+                  ),
+                ],
+              ),
+            ),
           ),
-          IconButton(
-            icon: const Icon(Icons.logout),
-            onPressed: () async {
-              await AuthService().logout();
-            },
-            tooltip: 'Logout',
-          ),
-        ],
+        ),
       ),
       body: currentUser == null
           ? const Center(child: Text("Not logged in."))
@@ -167,27 +204,140 @@ class _VolunteerDashboardState extends State<VolunteerDashboard> {
   }
 
   Widget _buildDashboardContent() {
+    final uid = currentUser?.uid ?? '';
     return Center(
       child: ConstrainedBox(
         constraints: const BoxConstraints(maxWidth: 1200),
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              _buildSectionTitle('Your Assigned Tasks'),
-              Expanded(flex: 1, child: _buildAssignedTasks()),
+        child: ListView(
+          padding: const EdgeInsets.all(16),
+          children: [
+            // Skills chip row
+            if (_userModel != null && _userModel!.skills.isNotEmpty) ...
+              [_buildSkillsRow(), const SizedBox(height: 16)],
 
-              const SizedBox(height: 16),
-              const Divider(),
-              const SizedBox(height: 16),
+            _buildSectionTitle('🏕️ My Assigned Camps'),
+            _buildMyCamps(uid),
+            const SizedBox(height: 8),
 
-              _buildSectionTitle('Available Tasks (Surveys)'),
-              Expanded(flex: 2, child: _buildAvailableSurveys()),
-            ],
-          ),
+            _buildSectionTitle('📋 My Survey Tasks'),
+            SizedBox(height: 220, child: _buildAssignedTasks()),
+
+            const SizedBox(height: 8),
+            _buildSectionTitle('🌐 Available Surveys'),
+            SizedBox(height: 320, child: _buildAvailableSurveys()),
+            const SizedBox(height: 60),
+          ],
         ),
       ),
+    );
+  }
+
+  Widget _buildSkillsRow() {
+    return Wrap(
+      spacing: 8,
+      children: [
+        const Padding(
+          padding: EdgeInsets.only(bottom: 6),
+          child: Text('Your Skills:', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.deepPurple)),
+        ),
+        ..._userModel!.skills.map((skill) => Chip(
+          label: Text(skill, style: const TextStyle(fontSize: 11)),
+          backgroundColor: const Color(0xFF8A2387).withOpacity(0.1),
+          side: const BorderSide(color: Color(0xFF8A2387)),
+          labelStyle: const TextStyle(color: Color(0xFF8A2387)),
+        )),
+      ],
+    );
+  }
+
+  Widget _buildMyCamps(String uid) {
+    return StreamBuilder<List<CampModel>>(
+      stream: CampService().streamCampModelsForVolunteer(uid),
+      builder: (context, snap) {
+        if (!snap.hasData) return const SizedBox(height: 60, child: Center(child: CircularProgressIndicator(strokeWidth: 2)));
+        final assignments = snap.data ?? [];
+
+        if (assignments.isEmpty) {
+          return ClayContainer(
+            color: baseColor, borderRadius: 14, depth: 15,
+            child: Padding(
+              padding: const EdgeInsets.all(20),
+              child: Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF5F72BD).withOpacity(0.1),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(Icons.festival_outlined, color: Color(0xFF5F72BD), size: 28),
+                  ),
+                  const SizedBox(width: 14),
+                  const Expanded(
+                    child: Text('No camp assignments yet. NGOs will assign you when a camp is planned.',
+                        style: TextStyle(color: Colors.grey, fontSize: 13)),
+                  ),
+                ],
+              ),
+            ),
+          );
+        }
+
+        return Column(
+          children: assignments.map((camp) {
+            final statusColor = camp.status == 'active' ? Colors.green
+                : camp.status == 'completed' ? Colors.blue : Colors.orange;
+            return Padding(
+              padding: const EdgeInsets.only(bottom: 10),
+              child: GestureDetector(
+                onTap: () => Navigator.push(context,
+                    MaterialPageRoute(builder: (_) => CampDetailScreen(camp: camp))),
+                child: ClayContainer(
+                  color: baseColor, borderRadius: 14, depth: 18,
+                  child: Padding(
+                    padding: const EdgeInsets.all(14),
+                    child: Row(
+                      children: [
+                        Container(
+                          width: 46, height: 46,
+                          decoration: const BoxDecoration(
+                            gradient: LinearGradient(colors: [Color(0xFF5F72BD), Color(0xFF8A2387)]),
+                            shape: BoxShape.circle,
+                          ),
+                          child: const Icon(Icons.local_hospital, color: Colors.white, size: 22),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(camp.campName, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+                              Text('📍 ${camp.location.isNotEmpty ? camp.location : camp.area}',
+                                  style: const TextStyle(fontSize: 12, color: Colors.grey)),
+                              Text('📅 ${camp.scheduledDate.day}/${camp.scheduledDate.month}/${camp.scheduledDate.year}',
+                                  style: const TextStyle(fontSize: 11, color: Colors.grey)),
+                            ],
+                          ),
+                        ),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                          decoration: BoxDecoration(
+                            color: statusColor.withOpacity(0.12),
+                            borderRadius: BorderRadius.circular(10),
+                            border: Border.all(color: statusColor.withOpacity(0.4)),
+                          ),
+                          child: Text(camp.status.toUpperCase(),
+                              style: TextStyle(color: statusColor, fontWeight: FontWeight.bold, fontSize: 10)),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            );
+          }).toList(),
+        );
+      },
     );
   }
 

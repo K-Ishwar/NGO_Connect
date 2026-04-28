@@ -41,8 +41,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
       role: _selectedRole,
       name: _nameController.text.trim(),
       skills: _selectedRole == 'volunteer'
-          ? _skillsController.text.trim()
-          : null,
+          ? _skillsController.text.trim().split(',').map((s) => s.trim()).where((s) => s.isNotEmpty).toList()
+          : const [],
       location: _selectedRole == 'volunteer'
           ? _locationController.text.trim()
           : null,
